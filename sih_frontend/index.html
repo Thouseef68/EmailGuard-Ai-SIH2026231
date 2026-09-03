@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>EmailGuard AI — Blockchain-Anchored Email Threat Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/custom.css"/>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans">
+
+<!-- ── NAVBAR ─────────────────────────────────────────────────────────── -->
+<nav class="fixed top-0 w-full z-50 bg-slate-950/90 backdrop-blur border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <!-- Logo -->
+        <a href="index.html" class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">E</div>
+            <span class="text-xl font-bold text-white">EmailGuard <span class="text-indigo-400">AI</span></span>
+        </a>
+
+        <!-- Nav links -->
+        <div class="hidden md:flex items-center gap-8 text-sm text-slate-400">
+            <a href="guide.html"        class="hover:text-white transition">How It Works</a>
+            <a href="terms.html"        class="hover:text-white transition">Terms</a>
+            <a href="cyber-apply.html"  class="hover:text-white transition">Cyber Access</a>
+        </div>
+
+        <!-- Guest buttons -->
+        <div id="guest-nav" class="flex items-center gap-3">
+            <a href="login.html"  class="text-sm text-slate-300 hover:text-white transition">Login</a>
+            <a href="signup.html" class="text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg transition">Sign Up</a>
+        </div>
+
+        <!-- Auth buttons (shown when logged in) -->
+        <div id="auth-nav" class="hidden items-center gap-4">
+            <a href="analyze.html"   class="text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg transition">Analyze Email</a>
+            <a href="dashboard.html" class="text-sm text-slate-300 hover:text-white transition">Dashboard</a>
+            <div class="text-right">
+                <p id="user-email" class="text-xs text-slate-400"></p>
+                <p id="user-role"  class="text-xs text-indigo-400 font-medium"></p>
+            </div>
+            <button onclick="Auth.logout()" class="text-xs text-slate-500 hover:text-red-400 transition">Logout</button>
+        </div>
+    </div>
+</nav>
+
+<!-- ── HERO ───────────────────────────────────────────────────────────── -->
+<section class="min-h-screen flex flex-col items-center justify-center text-center px-6 pt-24 pb-16">
+    <!-- Badge -->
+    <div class="inline-flex items-center gap-2 bg-indigo-600/20 border border-indigo-500/40 rounded-full px-4 py-1.5 text-sm text-indigo-300 mb-8">
+        <span class="w-2 h-2 bg-indigo-400 rounded-full animate-pulse"></span>
+        SIH 2026 — Cybersecurity & Blockchain Track
+    </div>
+
+    <h1 class="text-5xl md:text-7xl font-extrabold text-white leading-tight mb-6">
+        AI-Powered<br/>
+        <span class="text-indigo-400">Email Threat</span><br/>
+        Detection
+    </h1>
+
+    <p class="text-lg md:text-xl text-slate-400 max-w-2xl mb-10">
+        Upload any suspicious email. Our 18-layer AI pipeline analyzes it for phishing,
+        malware, and fraud — then anchors the forensic report permanently on the
+        <span class="text-white font-medium">Ethereum Sepolia blockchain.</span>
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-4 mb-16">
+        <a href="analyze.html" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-8 py-4 rounded-xl text-lg transition shadow-lg shadow-indigo-500/20">
+            Analyze an Email — Free
+        </a>
+        <a href="guide.html" class="border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white font-medium px-8 py-4 rounded-xl text-lg transition">
+            How It Works
+        </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="flex flex-wrap justify-center gap-12 text-center">
+        <div><p class="text-4xl font-bold text-white">18</p><p class="text-slate-400 text-sm mt-1">Analysis Layers</p></div>
+        <div><p class="text-4xl font-bold text-white">93%</p><p class="text-slate-400 text-sm mt-1">Detection Accuracy</p></div>
+        <div><p class="text-4xl font-bold text-white">3</p><p class="text-slate-400 text-sm mt-1">Laws Satisfied</p></div>
+        <div><p class="text-4xl font-bold text-white">∞</p><p class="text-slate-400 text-sm mt-1">Blockchain Records</p></div>
+    </div>
+</section>
+
+<!-- ── HOW IT WORKS ───────────────────────────────────────────────────── -->
+<section class="py-24 px-6 bg-slate-900/50">
+    <div class="max-w-5xl mx-auto">
+        <h2 class="text-3xl font-bold text-white text-center mb-4">How It Works</h2>
+        <p class="text-slate-400 text-center mb-16">Three steps. Under 30 seconds.</p>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="text-center p-8 bg-slate-900 rounded-2xl border border-slate-800">
+                <div class="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-6">📧</div>
+                <div class="text-indigo-400 font-bold text-sm mb-2">STEP 1</div>
+                <h3 class="text-white font-semibold text-lg mb-3">Upload Your Email</h3>
+                <p class="text-slate-400 text-sm">Download the raw .eml file from Gmail or Outlook and upload it here. We never store the original email.</p>
+            </div>
+            <div class="text-center p-8 bg-slate-900 rounded-2xl border border-slate-800">
+                <div class="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-6">🧠</div>
+                <div class="text-indigo-400 font-bold text-sm mb-2">STEP 2</div>
+                <h3 class="text-white font-semibold text-lg mb-3">AI Analyzes It</h3>
+                <p class="text-slate-400 text-sm">DeBERTa V12 + XGBoost V3 + 7 forensic layers analyze every header, URL, attachment, and image.</p>
+            </div>
+            <div class="text-center p-8 bg-slate-900 rounded-2xl border border-slate-800">
+                <div class="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-6">⛓️</div>
+                <div class="text-indigo-400 font-bold text-sm mb-2">STEP 3</div>
+                <h3 class="text-white font-semibold text-lg mb-3">Blockchain Anchored</h3>
+                <p class="text-slate-400 text-sm">Your forensic report is hashed and anchored permanently on Ethereum Sepolia. Tamper-proof evidence.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── FEATURES ───────────────────────────────────────────────────────── -->
+<section class="py-24 px-6">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="text-3xl font-bold text-white text-center mb-4">What We Detect</h2>
+        <p class="text-slate-400 text-center mb-16">18 analysis components across 7 layers.</p>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Feature cards -->
+            <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800 hover:border-indigo-500/50 transition">
+                <div class="text-2xl mb-4">🤖</div>
+                <h3 class="text-white font-semibold mb-2">AI Detection</h3>
+                <p class="text-slate-400 text-sm">DeBERTa V12 transformer + XGBoost structural analysis fused via weighted ensemble gate.</p>
+            </div>
+            <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800 hover:border-indigo-500/50 transition">
+                <div class="text-2xl mb-4">⛓️</div>
+                <h3 class="text-white font-semibold mb-2">Blockchain Evidence</h3>
+                <p class="text-slate-400 text-sm">SHA-256 report hash anchored on Ethereum. Admissible under BSA 2023 and Indian Evidence Act.</p>
+            </div>
+            <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800 hover:border-indigo-500/50 transition">
+                <div class="text-2xl mb-4">🌍</div>
+                <h3 class="text-white font-semibold mb-2">GeoIP Origin</h3>
+                <p class="text-slate-400 text-sm">Traces the real originating IP through SMTP hops and maps country, city, and ISP on a live map.</p>
+            </div>
+            <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800 hover:border-indigo-500/50 transition">
+                <div class="text-2xl mb-4">📊</div>
+                <h3 class="text-white font-semibold mb-2">SHAP Explainability</h3>
+                <p class="text-slate-400 text-sm">Every verdict explained — which features pushed the score toward phishing or legitimate.</p>
+            </div>
+            <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800 hover:border-indigo-500/50 transition">
+                <div class="text-2xl mb-4">👁️</div>
+                <h3 class="text-white font-semibold mb-2">Vision Analysis</h3>
+                <p class="text-slate-400 text-sm">EasyOCR extracts text from images, QR codes decoded for quishing, brand logo spoofing detected.</p>
+            </div>
+            <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800 hover:border-indigo-500/50 transition">
+                <div class="text-2xl mb-4">🔒</div>
+                <h3 class="text-white font-semibold mb-2">Legal Compliance</h3>
+                <p class="text-slate-400 text-sm">DPDP Act 2023 PII masking, BSA 2023 audit logs, IPFS off-chain + Polygon on-chain storage.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── COMPLIANCE BADGES ───────────────────────────────────────────────── -->
+<section class="py-16 px-6 bg-slate-900/50">
+    <div class="max-w-4xl mx-auto text-center">
+        <h2 class="text-xl font-semibold text-white mb-8">Legal Compliance</h2>
+        <div class="flex flex-wrap justify-center gap-4">
+            <div class="px-5 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-300">
+                ⚖️ Bharatiya Sakshya Adhiniyam (BSA) 2023 — Section 63
+            </div>
+            <div class="px-5 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-300">
+                🛡️ DPDP Act 2023 — Article 4 (PII Masking)
+            </div>
+            <div class="px-5 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-300">
+                📜 Indian Evidence Act 1872 — Section 65B
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── USER TIERS ─────────────────────────────────────────────────────── -->
+<section class="py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+        <h2 class="text-3xl font-bold text-white text-center mb-4">Access Tiers</h2>
+        <p class="text-slate-400 text-center mb-16">Choose the plan that fits your need.</p>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Normal User -->
+            <div class="p-8 bg-slate-900 rounded-2xl border border-slate-800">
+                <div class="text-2xl mb-4">👤</div>
+                <h3 class="text-white font-bold text-xl mb-2">Individual</h3>
+                <p class="text-indigo-400 font-medium text-sm mb-6">Free — Sign up now</p>
+                <ul class="space-y-3 text-sm text-slate-400">
+                    <li class="flex gap-2"><span class="text-green-400">✓</span> Upload & analyze emails</li>
+                    <li class="flex gap-2"><span class="text-green-400">✓</span> Full AI report</li>
+                    <li class="flex gap-2"><span class="text-green-400">✓</span> Blockchain verification</li>
+                    <li class="flex gap-2"><span class="text-green-400">✓</span> PDF download</li>
+                    <li class="flex gap-2"><span class="text-green-400">✓</span> Last 10 analyses</li>
+                </ul>
+                <a href="signup.html" class="mt-8 block text-center bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl text-sm font-medium transition">
+                    Get Started
+                </a>
+            </div>
+
+            <!-- Organization -->
+            <div class="p-8 bg-slate-900 rounded-2xl border border-indigo-500 relative">
+                <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full">POPULAR</div>
+                <div class="text-2xl mb-4">🏢</div>
+                <h3 class="text-white font-bold text-xl mb-2">Organization</h3>
+                <p class="text-indigo-400 font-medium text-sm mb-6">Free — Team access</p>
+                <ul class="space-y-3 text-sm text-slate-400">
+                    <li class="flex gap-2"><span class="text-green-400">✓</span> Everything in Individual</li>
+                    <li class="flex gap-2"><span class="text-green-400">✓</span> Invite team members</li>
+                    <li class="flex gap-2"><span class="text-green-400">✓</span> Shared team dashboard</li>
+                    <li class="flex gap-2"><span class="text-green-400">✓</span> Bulk CSV export</li>
+                    <li class="flex gap-2"><span class="text-green-400">✓</span> All team analyses</li>
+                </ul>
+                <a href="signup.html?role=org" class="mt-8 block text-center bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl text-sm font-medium transition">
+                    Register Organization
+                </a>
+            </div>
+
+            <!-- Cyber -->
+            <div class="p-8 bg-slate-900 rounded-2xl border border-slate-800">
+                <div class="text-2xl mb-4">🛡️</div>
+                <h3 class="text-white font-bold text-xl mb-2">Cyber Professional</h3>
+                <p class="text-indigo-400 font-medium text-sm mb-6">By approval only</p>
+                <ul class="space-y-3 text-sm text-slate-400">
+                    <li class="flex gap-2"><span class="text-green-400">✓</span> Everything in Individual</li>
+                    <li class="flex gap-2"><span class="text-green-400">✓</span> Raw SMTP chain + IOCs</li>
+                    <li class="flex gap-2"><span class="text-green-400">✓</span> Full SHAP breakdown</li>
+                    <li class="flex gap-2"><span class="text-green-400">✓</span> WHOIS + VT raw data</li>
+                    <li class="flex gap-2"><span class="text-green-400">✓</span> Full forensic PDF</li>
+                </ul>
+                <a href="cyber-apply.html" class="mt-8 block text-center border border-indigo-500 hover:bg-indigo-500/10 text-indigo-400 py-3 rounded-xl text-sm font-medium transition">
+                    Request Access
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
+<footer class="border-t border-slate-800 py-10 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">E</div>
+            <span class="text-slate-400 text-sm">EmailGuard AI — SIH 2026</span>
+        </div>
+        <div class="flex gap-6 text-sm text-slate-500">
+            <a href="guide.html"       class="hover:text-white transition">Guide</a>
+            <a href="terms.html"       class="hover:text-white transition">Terms</a>
+            <a href="cyber-apply.html" class="hover:text-white transition">Cyber Access</a>
+        </div>
+        <p class="text-slate-600 text-xs">© 2026 EmailGuard AI. Built for SIH 2026.</p>
+    </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        Auth.updateNavbar();
+    });
+</script>
+</body>
+</html>

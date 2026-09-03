@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Cyber Access — EmailGuard AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/custom.css"/>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+<nav class="fixed top-0 w-full z-50 bg-slate-950/90 backdrop-blur border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="index.html" class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">E</div>
+            <span class="text-xl font-bold text-white">EmailGuard <span class="text-indigo-400">AI</span></span>
+        </a>
+        <a href="index.html" class="text-sm text-slate-400 hover:text-white transition">← Back</a>
+    </div>
+</nav>
+
+<main class="pt-24 pb-16 px-6 max-w-2xl mx-auto">
+
+    <div class="text-center mb-10">
+        <div class="text-5xl mb-4">🛡️</div>
+        <h1 class="text-4xl font-bold text-white mb-3">Cyber Professional Access</h1>
+        <p class="text-slate-400">Extended forensic access for verified cybersecurity professionals. All queries are permanently logged.</p>
+    </div>
+
+    <!-- What you get -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-8">
+        <h2 class="text-white font-semibold mb-4">What Cyber Access Includes</h2>
+        <div class="grid grid-cols-2 gap-3">
+            <div class="flex items-center gap-2 text-sm text-slate-300"><span class="text-green-400">✓</span> Raw SMTP chain + all IPs</div>
+            <div class="flex items-center gap-2 text-sm text-slate-300"><span class="text-green-400">✓</span> Full SHAP feature breakdown</div>
+            <div class="flex items-center gap-2 text-sm text-slate-300"><span class="text-green-400">✓</span> WHOIS raw data</div>
+            <div class="flex items-center gap-2 text-sm text-slate-300"><span class="text-green-400">✓</span> VirusTotal raw vendor data</div>
+            <div class="flex items-center gap-2 text-sm text-slate-300"><span class="text-green-400">✓</span> IOC export</div>
+            <div class="flex items-center gap-2 text-sm text-slate-300"><span class="text-green-400">✓</span> Full forensic PDF report</div>
+        </div>
+        <div class="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-300 text-sm">
+            ⚠️ All queries are permanently logged. Access may be revoked at any time.
+        </div>
+    </div>
+
+    <!-- Form — FormSubmit.co handles email delivery -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8">
+        <h2 class="text-white font-semibold mb-6">Application Form</h2>
+
+        <form
+            action="https://formsubmit.co/emailguard.sih2026@gmail.com"
+            method="POST"
+            enctype="multipart/form-data"
+            id="apply-form"
+        >
+            <!-- FormSubmit config -->
+            <input type="hidden" name="_subject"  value="🛡️ Cyber Access Application — EmailGuard AI"/>
+            <input type="hidden" name="_template" value="plain"/>
+            <input type="hidden" name="_captcha"  value="false"/>
+            <input type="hidden" name="_next"      value="cyber-success.html"/>
+
+            <div class="space-y-5">
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1.5">Full Name *</label>
+                        <input name="full_name" type="text" required placeholder="Your full name"
+                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 text-sm"/>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1.5">Designation *</label>
+                        <input name="designation" type="text" required placeholder="Security Analyst"
+                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 text-sm"/>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1.5">Professional Email *</label>
+                    <input name="email" type="email" required placeholder="you@organization.com"
+                        class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 text-sm"/>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1.5">Organization *</label>
+                    <input name="organization" type="text" required placeholder="CERT-In, DRDO, company name..."
+                        class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 text-sm"/>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1.5">Purpose of Access *</label>
+                    <textarea name="purpose" required rows="3"
+                        placeholder="Describe how you intend to use EmailGuard AI for professional cybersecurity purposes..."
+                        class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 text-sm resize-none"></textarea>
+                </div>
+
+                <!-- Identity Proof Upload -->
+                <div class="p-5 bg-slate-800/50 border border-slate-700 rounded-xl space-y-4">
+                    <h3 class="text-white font-medium text-sm">📎 Identity Verification Documents</h3>
+                    <p class="text-slate-400 text-xs">Upload any ONE government-issued ID and a clear photo of yourself holding it.</p>
+
+                    <!-- ID Type selector -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">ID Type *</label>
+                        <select name="id_type" required
+                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 text-sm">
+                            <option value="" disabled selected>Select ID type</option>
+                            <option value="Aadhaar Card">Aadhaar Card</option>
+                            <option value="PAN Card">PAN Card</option>
+                            <option value="Driving License">Driving License</option>
+                            <option value="Passport">Passport</option>
+                            <option value="Voter ID">Voter ID</option>
+                        </select>
+                    </div>
+
+                    <!-- ID Document Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">
+                            Upload ID Document * <span class="text-slate-500 font-normal">(JPG, PNG or PDF, max 5MB)</span>
+                        </label>
+                        <div id="id-drop" onclick="document.getElementById('id-file').click()"
+                            class="border-2 border-dashed border-slate-600 hover:border-indigo-500 rounded-xl p-6 text-center cursor-pointer transition">
+                            <p class="text-slate-400 text-sm" id="id-label">🪪 Click to upload your ID document</p>
+                        </div>
+                        <input id="id-file" name="identity_document"
+                            type="file" accept=".jpg,.jpeg,.png,.pdf"
+                            required class="hidden"
+                            onchange="previewFile(this, 'id-label', 'id-preview')"/>
+                        <img id="id-preview" class="hidden mt-3 max-h-32 rounded-lg border border-slate-700 mx-auto"/>
+                    </div>
+
+                    <!-- Photo Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">
+                            Your Photo * <span class="text-slate-500 font-normal">(Selfie or passport photo, JPG/PNG, max 5MB)</span>
+                        </label>
+                        <div id="photo-drop" onclick="document.getElementById('photo-file').click()"
+                            class="border-2 border-dashed border-slate-600 hover:border-indigo-500 rounded-xl p-6 text-center cursor-pointer transition">
+                            <p class="text-slate-400 text-sm" id="photo-label">📷 Click to upload your photo</p>
+                        </div>
+                        <input id="photo-file" name="applicant_photo"
+                            type="file" accept=".jpg,.jpeg,.png"
+                            required class="hidden"
+                            onchange="previewFile(this, 'photo-label', 'photo-preview')"/>
+                        <img id="photo-preview" class="hidden mt-3 max-h-32 rounded-lg border border-slate-700 mx-auto"/>
+                    </div>
+                </div>
+
+                <!-- Agreements -->
+                <div class="p-4 bg-slate-800/50 border border-slate-700 rounded-xl space-y-3">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" required name="agree_log"
+                            class="mt-0.5 w-4 h-4 accent-indigo-500"/>
+                        <span class="text-sm text-slate-300">I understand all my queries will be permanently logged in the audit trail.</span>
+                    </label>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" required name="agree_revoke"
+                            class="mt-0.5 w-4 h-4 accent-indigo-500"/>
+                        <span class="text-sm text-slate-300">I agree access may be revoked at any time without notice.</span>
+                    </label>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" required name="agree_misuse"
+                            class="mt-0.5 w-4 h-4 accent-indigo-500"/>
+                        <span class="text-sm text-slate-300">I will not use this platform to test phishing infrastructure or assist in active attacks.</span>
+                    </label>
+                </div>
+
+                <button type="submit" id="apply-btn"
+                    class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl transition text-sm">
+                    Submit Application
+                </button>
+
+                <p class="text-center text-slate-500 text-xs">
+                    Your documents are sent directly to our team email. We respond within 3 business days.
+                </p>
+
+            </div>
+        </form>
+    </div>
+</main>
+
+<script>
+function previewFile(input, labelId, previewId) {
+    const file    = input.files[0];
+    const labelEl = document.getElementById(labelId);
+    const preview = document.getElementById(previewId);
+
+    if (!file) return;
+
+    // Size check — max 5MB
+    if (file.size > 5 * 1024 * 1024) {
+        alert("File too large. Maximum size is 5MB.");
+        input.value = "";
+        return;
+    }
+
+    labelEl.textContent = `✅ ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+    labelEl.className   = "text-green-400 text-sm";
+
+    // Show image preview if image file
+    if (file.type.startsWith("image/")) {
+        const reader  = new FileReader();
+        reader.onload = e => {
+            preview.src = e.target.result;
+            preview.classList.remove("hidden");
+        };
+        reader.readAsDataURL(file);
+    }
+}
+</script>
+</body>
+</html>
+

@@ -1,0 +1,41 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local models — stored on Hugging Face instead
+models/
+*.safetensors
+*.pt
+*.pth
+*.bin
+
+# Local datasets / test emails
+*.eml
+sih_phase3_data/
+sih_phase3_blind_test/
+sih_phase4_real_100_eml/
+
+# Generated reports / diagnostics
+*.pdf
+*_results.csv
+*_results.json
+batch_test_results.json
+xgb_root_cause_diagnostic/

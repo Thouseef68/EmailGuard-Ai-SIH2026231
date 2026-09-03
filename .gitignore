@@ -1,0 +1,59 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# ML models
+sih_backend/models/
+*.safetensors
+*.pt
+*.pth
+*.bin
+
+# Email/test data
+*.eml
+*.msg
+*.pcap
+
+# Datasets
+sih_backend/sih_phase3_data/
+sih_backend/sih_phase3_blind_test/
+sih_backend/sih_phase4_real_100_eml/
+
+# Generated files
+*.pdf
+*_results.csv
+*_results.json
+*_diagnostic.csv
+sih_backend/xgb_root_cause_diagnostic/
+
+# Hardhat generated files
+sih_chain/node_modules/
+sih_chain/artifacts/
+sih_chain/cache/
+sih_chain/coverage/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Hardhat generated deployment data
+sih_chain/artifacts/
+sih_chain/cache/
+sih_chain/coverage/
+sih_chain/ignition/deployments/chain-31337/

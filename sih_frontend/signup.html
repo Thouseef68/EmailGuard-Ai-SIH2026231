@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Sign Up — EmailGuard AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/custom.css"/>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center px-4 py-12">
+
+<!-- ── TERMS MODAL ──────────────────────────────────────────────────────── -->
+<div id="terms-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+
+    <!-- Modal box -->
+    <div class="relative bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl flex flex-col shadow-2xl" style="max-height:85vh">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800 flex-shrink-0">
+            <div>
+                <h2 class="text-white font-bold text-lg">Terms & Agreement</h2>
+                <p class="text-slate-400 text-xs mt-0.5">Please read completely to continue</p>
+            </div>
+            <button onclick="closeTermsModal()" class="text-slate-500 hover:text-white transition text-xl leading-none">✕</button>
+        </div>
+
+        <!-- Scroll progress bar -->
+        <div class="h-1 bg-slate-800 flex-shrink-0">
+            <div id="scroll-progress" class="h-full bg-indigo-600 transition-all duration-200" style="width:0%"></div>
+        </div>
+
+        <!-- Read indicator -->
+        <div id="read-indicator" class="flex items-center gap-2 px-6 py-2 bg-slate-800/50 flex-shrink-0">
+            <div class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></div>
+            <span id="read-status" class="text-yellow-400 text-xs font-medium">Scroll to read all terms</span>
+        </div>
+
+        <!-- Scrollable content -->
+        <div id="terms-scroll-area" class="overflow-y-auto flex-1 px-6 py-5 text-sm text-slate-300 space-y-5 leading-relaxed">
+
+            <div>
+                <h3 class="text-white font-semibold text-base mb-2">1. What Data We Collect</h3>
+                <p>When you upload a <code class="bg-slate-800 px-1 rounded text-indigo-300">.eml</code> file, we process the raw email content including headers, body text, URLs, attachments, and embedded images. We collect your account email address, login timestamps, and usage logs (which analyses you ran and when). We do not collect payment information.</p>
+            </div>
+
+            <div>
+                <h3 class="text-white font-semibold text-base mb-2">2. Why We Collect It</h3>
+                <p>Email content is processed solely for phishing and threat detection analysis. Usage logs are maintained for legal compliance under the Bharatiya Sakshya Adhiniyam (BSA) 2023 and to improve detection accuracy using anonymized, aggregated data. You may opt out of model improvement data use by contacting us.</p>
+            </div>
+
+            <div>
+                <h3 class="text-white font-semibold text-base mb-2">3. PII Handling — DPDP Act 2023</h3>
+                <p>All personally identifiable information (PII) detected in your email — including Aadhaar numbers, PAN numbers, phone numbers, email addresses, dates of birth, bank account numbers, IFSC codes, and card numbers — is automatically redacted before the report is stored. The original unredacted content is never stored on our servers. This is performed in compliance with the <strong class="text-white">Digital Personal Data Protection (DPDP) Act 2023, Article 4 (Data Minimisation)</strong>.</p>
+            </div>
+
+            <div>
+                <h3 class="text-white font-semibold text-base mb-2">4. Blockchain Anchoring</h3>
+                <p>The SHA-256 hash of your forensic report is anchored permanently on the Ethereum Sepolia public blockchain. This creates a tamper-proof, immutable record. The full report is stored off-chain on IPFS via Pinata. You acknowledge that blockchain records cannot be deleted once anchored. This anchoring satisfies the requirements of the <strong class="text-white">Bharatiya Sakshya Adhiniyam (BSA) 2023 — Section 63</strong> and <strong class="text-white">Indian Evidence Act 1872 — Section 65B</strong> for electronic records.</p>
+            </div>
+
+            <div>
+                <h3 class="text-white font-semibold text-base mb-2">5. Who Can See Your Report</h3>
+                <ul class="space-y-2 text-slate-400">
+                    <li><span class="text-white font-medium">Individual users:</span> Only you can see your reports.</li>
+                    <li><span class="text-white font-medium">Organization accounts:</span> All members of your organization can view all analyses submitted under your org account.</li>
+                    <li><span class="text-white font-medium">Cyber Professional accounts:</span> Approved cyber professionals have access to extended forensic data. All their queries are logged in our audit trail without exception.</li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="text-white font-semibold text-base mb-2">6. Data Retention</h3>
+                <p>Analysis reports are retained for <strong class="text-white">90 days</strong> from the date of analysis, after which they are automatically deleted from our database. Audit logs are retained for <strong class="text-white">1 year</strong> as required by applicable law. Blockchain hash anchors are permanent and cannot be removed. You may request early deletion of your reports by contacting us — note that the blockchain hash anchor will remain even after report deletion.</p>
+            </div>
+
+            <div>
+                <h3 class="text-white font-semibold text-base mb-2">7. Prohibited Use</h3>
+                <p>You must not use EmailGuard AI to test phishing infrastructure you operate, to analyze emails of individuals without their consent, or to attempt to extract information about other users' analyses. Violation of these terms will result in immediate account suspension and may be reported to law enforcement.</p>
+            </div>
+
+            <div>
+                <h3 class="text-white font-semibold text-base mb-2">8. Cyber Professional Access</h3>
+                <p>Cyber Professional accounts are granted manually after identity verification. Approved cyber professionals agree that all queries are permanently logged, that access may be revoked at any time without notice, and that they will not use the platform to test their own phishing infrastructure or any infrastructure involved in active attacks.</p>
+            </div>
+
+            <div>
+                <h3 class="text-white font-semibold text-base mb-2">9. Disclaimer</h3>
+                <p>EmailGuard AI is a threat detection tool and does not guarantee detection of all phishing attempts. Results are advisory in nature. We are not liable for any damages resulting from reliance on analysis results. The system achieves 93% accuracy on our test dataset; real-world performance may vary.</p>
+            </div>
+
+            <div>
+                <h3 class="text-white font-semibold text-base mb-2">10. Contact</h3>
+                <p>For data deletion requests, access inquiries, or Cyber Professional applications, contact us at <span class="text-indigo-400">emailguard.sih2026@gmail.com</span>. We will respond within 7 business days.</p>
+            </div>
+
+            <!-- Bottom sentinel -->
+            <div id="terms-bottom" class="h-4"></div>
+        </div>
+
+        <!-- Footer — accept button unlocks after scroll -->
+        <div class="flex items-center justify-between px-6 py-4 border-t border-slate-800 bg-slate-900 rounded-b-2xl flex-shrink-0">
+            <p id="scroll-hint" class="text-slate-500 text-xs">↓ Scroll to read all terms</p>
+            <button
+                id="accept-terms-btn"
+                onclick="acceptTerms()"
+                disabled
+                class="px-6 py-2.5 bg-slate-700 text-slate-400 rounded-xl text-sm font-medium cursor-not-allowed transition"
+            >
+                I Have Read & Agree
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ── SIGNUP FORM ────────────────────────────────────────────────────────── -->
+<div class="w-full max-w-md">
+
+    <!-- Logo -->
+    <div class="text-center mb-8">
+        <a href="index.html" class="inline-flex items-center gap-3">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">E</div>
+            <span class="text-2xl font-bold text-white">EmailGuard <span class="text-indigo-400">AI</span></span>
+        </a>
+        <p class="text-slate-400 mt-3 text-sm">Create your free account</p>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8">
+
+        <div id="error-msg"   class="hidden mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm"></div>
+        <div id="success-msg" class="hidden mb-4 p-3 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400 text-sm"></div>
+
+        <!-- Account type -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-slate-300 mb-3">Account Type</label>
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" id="btn-user" onclick="selectRole('user')"
+                    class="p-4 rounded-xl border-2 border-indigo-500 bg-indigo-500/10 text-center transition">
+                    <div class="text-2xl mb-1">👤</div>
+                    <div class="text-white font-medium text-sm">Individual</div>
+                    <div class="text-slate-400 text-xs mt-0.5">Personal use</div>
+                </button>
+                <button type="button" id="btn-org" onclick="selectRole('org')"
+                    class="p-4 rounded-xl border-2 border-slate-700 bg-slate-800 text-center transition hover:border-slate-500">
+                    <div class="text-2xl mb-1">🏢</div>
+                    <div class="text-white font-medium text-sm">Organization</div>
+                    <div class="text-slate-400 text-xs mt-0.5">Team access</div>
+                </button>
+            </div>
+            <p class="text-slate-500 text-xs mt-3 text-center">
+                Cyber Professional?
+                <a href="cyber-apply.html" class="text-indigo-400 hover:text-indigo-300">Apply here</a>
+            </p>
+        </div>
+
+        <form id="signup-form" class="space-y-4">
+
+            <div id="org-name-field" class="hidden">
+                <label class="block text-sm font-medium text-slate-300 mb-1.5">Organization Name</label>
+                <input id="org-name" type="text" placeholder="Acme Corp IT Security"
+                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition text-sm"/>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1.5">Email address</label>
+                <input id="email" type="email" required placeholder="you@example.com"
+                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition text-sm"/>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
+                <div class="relative">
+                    <input id="password" type="password" required placeholder="Min. 8 characters" minlength="8"
+                        class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition text-sm pr-12"/>
+                    <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-sm">👁</button>
+                </div>
+            </div>
+
+            <!-- Terms checkbox — locked until modal read -->
+            <div class="p-4 bg-slate-800/50 border border-slate-700 rounded-xl">
+                <div class="flex items-start gap-3">
+                    <input
+                        id="terms-checkbox"
+                        type="checkbox"
+                        required
+                        disabled
+                        class="mt-0.5 w-4 h-4 accent-indigo-500 cursor-not-allowed opacity-50"
+                    />
+                    <div class="flex-1">
+                        <label for="terms-checkbox" class="text-sm text-slate-300 leading-relaxed">
+                            I have read and agree to the
+                            <button type="button" onclick="openTermsModal()"
+                                class="text-indigo-400 hover:text-indigo-300 font-medium underline underline-offset-2 transition">
+                                Terms & Agreement
+                            </button>
+                        </label>
+                        <p id="terms-lock-hint" class="text-yellow-500 text-xs mt-1.5 flex items-center gap-1">
+                            <span>🔒</span>
+                            <span>You must read the full Terms before checking this box</span>
+                        </p>
+                        <p id="terms-unlock-hint" class="hidden text-green-400 text-xs mt-1.5 flex items-center gap-1">
+                            <span>✅</span>
+                            <span>Terms read — you may now agree and continue</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" id="submit-btn"
+                class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl transition text-sm mt-2">
+                Create Account
+            </button>
+        </form>
+
+        <p class="text-center text-sm text-slate-400 mt-6">
+            Already have an account?
+            <a href="login.html" class="text-indigo-400 hover:text-indigo-300 font-medium transition">Sign in</a>
+        </p>
+    </div>
+
+    <p class="text-center mt-6 text-sm text-slate-600">
+        <a href="index.html" class="hover:text-slate-400 transition">← Back to home</a>
+    </p>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script>
+    if (Auth.isLoggedIn()) window.location.href = "analyze.html";
+
+    let selectedRole  = new URLSearchParams(window.location.search).get("role") || "user";
+    let termsRead     = false;
+
+    selectRole(selectedRole);
+
+    // ── Role selector ──────────────────────────────────────────────────────
+    function selectRole(role) {
+        selectedRole = role;
+        const active   = role === "user" ? "btn-user" : "btn-org";
+        const inactive = role === "user" ? "btn-org"  : "btn-user";
+
+        document.getElementById(active).className =
+            "p-4 rounded-xl border-2 border-indigo-500 bg-indigo-500/10 text-center transition";
+        document.getElementById(inactive).className =
+            "p-4 rounded-xl border-2 border-slate-700 bg-slate-800 text-center transition hover:border-slate-500";
+
+        document.getElementById("org-name-field").classList.toggle("hidden", role !== "org");
+    }
+
+    // ── Terms modal ────────────────────────────────────────────────────────
+    function openTermsModal() {
+        document.getElementById("terms-modal").classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+
+        // Attach scroll listener
+        const area = document.getElementById("terms-scroll-area");
+        area.addEventListener("scroll", handleTermsScroll);
+    }
+
+    function closeTermsModal() {
+        document.getElementById("terms-modal").classList.add("hidden");
+        document.body.style.overflow = "";
+    }
+
+    function handleTermsScroll() {
+        const area       = document.getElementById("terms-scroll-area");
+        const scrolled   = area.scrollTop;
+        const total      = area.scrollHeight - area.clientHeight;
+        const pct        = Math.min(100, Math.round((scrolled / total) * 100));
+
+        // Update progress bar
+        document.getElementById("scroll-progress").style.width = pct + "%";
+
+        // Update status text
+        const statusEl = document.getElementById("read-status");
+        const hintEl   = document.getElementById("scroll-hint");
+        if (pct < 50) {
+            statusEl.textContent = `${pct}% read — keep scrolling`;
+        } else if (pct < 90) {
+            statusEl.textContent = `${pct}% read — almost there`;
+            statusEl.className   = "text-indigo-400 text-xs font-medium";
+        }
+
+        // Unlock when user reaches bottom (≥95%)
+        if (pct >= 95 && !termsRead) {
+            unlockTermsAccept();
+        }
+    }
+
+    function unlockTermsAccept() {
+        termsRead = true;
+
+        // Update read indicator
+        const indicator = document.getElementById("read-indicator");
+        indicator.className = "flex items-center gap-2 px-6 py-2 bg-green-500/10 flex-shrink-0";
+        indicator.querySelector(".w-2").className = "w-2 h-2 rounded-full bg-green-400";
+        document.getElementById("read-status").textContent = "✓ All terms read — you may now accept";
+        document.getElementById("read-status").className   = "text-green-400 text-xs font-medium";
+
+        // Enable accept button
+        const btn = document.getElementById("accept-terms-btn");
+        btn.disabled  = false;
+        btn.className = "px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium transition cursor-pointer";
+
+        // Update scroll hint
+        document.getElementById("scroll-hint").textContent = "✓ Terms fully read";
+        document.getElementById("scroll-hint").className   = "text-green-400 text-xs";
+    }
+
+    function acceptTerms() {
+        if (!termsRead) return;
+
+        closeTermsModal();
+
+        // Unlock the checkbox and auto-check it
+        const checkbox = document.getElementById("terms-checkbox");
+        checkbox.disabled = false;
+        checkbox.checked  = true;
+        checkbox.className = "mt-0.5 w-4 h-4 accent-indigo-500 cursor-pointer";
+
+        // Show unlock hint
+        document.getElementById("terms-lock-hint").classList.add("hidden");
+        document.getElementById("terms-unlock-hint").classList.remove("hidden");
+
+        Utils.toast("Terms accepted — you may now create your account.", "success");
+    }
+
+    // ── Password toggle ────────────────────────────────────────────────────
+    function togglePassword() {
+        const input = document.getElementById("password");
+        input.type = input.type === "password" ? "text" : "password";
+    }
+
+    // ── Error / success messages ───────────────────────────────────────────
+    function showError(msg) {
+        document.getElementById("error-msg").textContent = msg;
+        document.getElementById("error-msg").classList.remove("hidden");
+        document.getElementById("success-msg").classList.add("hidden");
+    }
+
+    function showSuccess(msg) {
+        document.getElementById("success-msg").textContent = msg;
+        document.getElementById("success-msg").classList.remove("hidden");
+        document.getElementById("error-msg").classList.add("hidden");
+    }
+
+    // ── Form submit ────────────────────────────────────────────────────────
+    document.getElementById("signup-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        if (!termsRead) {
+            showError("Please read the full Terms & Agreement before signing up.");
+            return;
+        }
+
+        if (!document.getElementById("terms-checkbox").checked) {
+            showError("Please check the Terms & Agreement box to continue.");
+            return;
+        }
+
+        const btn     = document.getElementById("submit-btn");
+        const email   = document.getElementById("email").value.trim();
+        const pass    = document.getElementById("password").value;
+        const orgName = document.getElementById("org-name")?.value.trim() || "";
+
+        if (selectedRole === "org" && !orgName) {
+            showError("Please enter your organization name.");
+            return;
+        }
+
+        btn.textContent = "Creating account...";
+        btn.disabled    = true;
+
+        try {
+            await Auth.signup(email, pass, selectedRole, orgName);
+            showSuccess("Account created! Please check your email to confirm, then sign in.");
+            btn.textContent = "Account Created ✓";
+        } catch (err) {
+            showError(err.message || "Signup failed. Please try again.");
+            btn.textContent = "Create Account";
+            btn.disabled    = false;
+        }
+    });
+</script>
+</body>
+</html>

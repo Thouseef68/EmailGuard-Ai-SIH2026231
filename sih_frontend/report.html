@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Analysis Report — EmailGuard AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="css/custom.css"/>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+<!-- NAVBAR -->
+<nav class="fixed top-0 w-full z-50 bg-slate-950/90 backdrop-blur border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="index.html" class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">E</div>
+            <span class="text-xl font-bold text-white">EmailGuard <span class="text-indigo-400">AI</span></span>
+        </a>
+        <div class="flex items-center gap-4">
+            <a href="analyze.html" class="text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg transition">
+                ＋ Analyze Another
+            </a>
+            <a href="dashboard.html" class="text-sm text-slate-400 hover:text-white transition">Dashboard</a>
+            <button onclick="Auth.logout()" class="text-xs text-slate-500 hover:text-red-400 transition">Logout</button>
+        </div>
+    </div>
+</nav>
+
+<!-- MAIN -->
+<main class="pt-24 pb-16 px-4 max-w-5xl mx-auto" id="report-root">
+
+    <!-- No report fallback -->
+    <div id="no-report" class="hidden text-center py-24">
+        <p class="text-slate-400 text-lg mb-4">No report found in session.</p>
+        <a href="analyze.html" class="text-indigo-400 hover:text-indigo-300">← Analyze an email first</a>
+    </div>
+
+    <!-- Report content (injected by report.js) -->
+    <div id="report-content"></div>
+
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/report.js"></script>
+<script>
+    if (!Auth.isLoggedIn()) window.location.href = "login.html";
+    Auth.updateNavbar();
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const report = Utils.loadReportFromSession();
+        if (!report) {
+            document.getElementById("no-report").classList.remove("hidden");
+            return;
+        }
+        ReportRenderer.render(report);
+    });
+</script>
+</body>
+</html>

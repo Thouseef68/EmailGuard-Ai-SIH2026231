@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Analyze Email — EmailGuard AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/custom.css"/>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+<!-- NAVBAR -->
+<nav class="fixed top-0 w-full z-50 bg-slate-950/90 backdrop-blur border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="index.html" class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">E</div>
+            <span class="text-xl font-bold text-white">EmailGuard <span class="text-indigo-400">AI</span></span>
+        </a>
+        <div class="flex items-center gap-4">
+            <a href="dashboard.html" class="text-sm text-slate-400 hover:text-white transition">Dashboard</a>
+            <div class="text-right hidden md:block">
+                <p id="user-email" class="text-xs text-slate-400"></p>
+                <p id="user-role"  class="text-xs text-indigo-400 font-medium"></p>
+            </div>
+            <button onclick="Auth.logout()" class="text-xs text-slate-500 hover:text-red-400 transition">Logout</button>
+        </div>
+    </div>
+</nav>
+
+<!-- MAIN -->
+<main class="pt-24 pb-16 px-6 max-w-3xl mx-auto">
+
+    <div class="text-center mb-10">
+        <h1 class="text-4xl font-bold text-white mb-3">Analyze Email</h1>
+        <p class="text-slate-400">Upload a raw <code class="bg-slate-800 px-2 py-0.5 rounded text-indigo-300 text-sm">.eml</code> file to get the full threat analysis report.</p>
+    </div>
+
+    <!-- Upload card -->
+    <div id="upload-section">
+        <div
+            id="drop-zone"
+            class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-2xl p-16 text-center cursor-pointer transition-colors duration-200 bg-slate-900"
+            ondragover="handleDragOver(event)"
+            ondragleave="handleDragLeave(event)"
+            ondrop="handleDrop(event)"
+            onclick="document.getElementById('file-input').click()"
+        >
+            <div class="text-6xl mb-4">📧</div>
+            <p class="text-white font-semibold text-lg mb-2">Drop your .eml file here</p>
+            <p class="text-slate-400 text-sm mb-6">or click to browse</p>
+            <div class="inline-block bg-indigo-600/20 border border-indigo-500/40 rounded-lg px-4 py-2 text-indigo-300 text-sm">
+                Supports: .eml, .msg, .txt
+            </div>
+            <input id="file-input" type="file" accept=".eml,.msg,.txt" class="hidden" onchange="handleFileSelect(event)"/>
+        </div>
+
+        <!-- Selected file preview -->
+        <div id="file-preview" class="hidden mt-4 p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="text-2xl">📄</div>
+                <div>
+                    <p id="file-name" class="text-white font-medium text-sm"></p>
+                    <p id="file-size" class="text-slate-400 text-xs"></p>
+                </div>
+            </div>
+            <button onclick="clearFile()" class="text-slate-500 hover:text-red-400 transition text-sm">✕ Remove</button>
+        </div>
+
+        <!-- Analyze button -->
+        <button
+            id="analyze-btn"
+            onclick="startAnalysis()"
+            disabled
+            class="w-full mt-6 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl transition text-lg"
+        >
+            Analyze Email
+        </button>
+
+        <!-- Help link -->
+        <p class="text-center text-slate-500 text-sm mt-4">
+            Don't know how to get a .eml file?
+            <a href="guide.html" class="text-indigo-400 hover:text-indigo-300">See our guide →</a>
+        </p>
+    </div>
+
+    <!-- Progress section (shown during analysis) -->
+    <div id="progress-section" class="hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8">
+            <h2 class="text-white font-bold text-xl mb-6 text-center">Analyzing your email...</h2>
+
+            <div id="progress-steps" class="space-y-3">
+                <!-- Steps injected by JS -->
+            </div>
+
+            <!-- Progress bar -->
+            <div class="mt-8">
+                <div class="flex justify-between text-xs text-slate-400 mb-2">
+                    <span>Progress</span>
+                    <span id="progress-pct">0%</span>
+                </div>
+                <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-indigo-600 rounded-full transition-all duration-500" style="width:0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error section -->
+    <div id="error-section" class="hidden mt-6 p-5 bg-red-500/20 border border-red-500/50 rounded-xl">
+        <p class="text-red-400 font-medium">Analysis failed</p>
+        <p id="error-detail" class="text-red-300 text-sm mt-1"></p>
+        <button onclick="resetPage()" class="mt-3 text-sm text-red-400 hover:text-white transition">← Try again</button>
+    </div>
+
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/analyze.js"></script>
+<script>
+    // Require login
+    if (!Auth.isLoggedIn()) window.location.href = "login.html";
+    Auth.updateNavbar();
+</script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Terms & Agreement — EmailGuard AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/custom.css"/>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+<nav class="fixed top-0 w-full z-50 bg-slate-950/90 backdrop-blur border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="index.html" class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">E</div>
+            <span class="text-xl font-bold text-white">EmailGuard <span class="text-indigo-400">AI</span></span>
+        </a>
+        <a href="index.html" class="text-sm text-slate-400 hover:text-white transition">← Back to Home</a>
+    </div>
+</nav>
+
+<main class="pt-24 pb-16 px-6 max-w-3xl mx-auto">
+
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-white mb-3">Terms & Agreement</h1>
+        <p class="text-slate-400 text-sm">Last updated: September 2026 — SIH 2026 Edition</p>
+    </div>
+
+    <div class="space-y-8 text-slate-300 leading-relaxed">
+
+        <section>
+            <h2 class="text-white font-bold text-xl mb-3">1. What Data We Collect</h2>
+            <p>When you upload a <code class="bg-slate-800 px-1.5 py-0.5 rounded text-indigo-300">.eml</code> file, we process the raw email content including headers, body text, URLs, attachments, and embedded images solely for threat analysis. We collect your account email address, login timestamps, and usage logs.</p>
+        </section>
+
+        <section>
+            <h2 class="text-white font-bold text-xl mb-3">2. Why We Collect It</h2>
+            <p>Email content is processed exclusively for phishing and threat detection. Usage logs are maintained for legal compliance under BSA 2023 and to improve detection accuracy using anonymized aggregated data. You may opt out of model improvement use by contacting us.</p>
+        </section>
+
+        <section>
+            <h2 class="text-white font-bold text-xl mb-3">3. PII Handling — DPDP Act 2023</h2>
+            <p>All personally identifiable information detected in your email — Aadhaar numbers, PAN numbers, phone numbers, email addresses, dates of birth, bank account numbers, IFSC codes, and card numbers — is automatically redacted before storage. This complies with the <strong class="text-white">DPDP Act 2023, Article 4 (Data Minimisation)</strong>. The original unredacted content is never stored on our servers.</p>
+        </section>
+
+        <section>
+            <h2 class="text-white font-bold text-xl mb-3">4. Blockchain Anchoring</h2>
+            <p>The SHA-256 hash of your forensic report is anchored permanently on the Ethereum Sepolia public blockchain. Blockchain records cannot be deleted once anchored. This satisfies <strong class="text-white">BSA 2023 — Section 63</strong> and <strong class="text-white">Indian Evidence Act 1872 — Section 65B</strong> requirements for electronic records admissibility.</p>
+        </section>
+
+        <section>
+            <h2 class="text-white font-bold text-xl mb-3">5. Data Retention</h2>
+            <p>Analysis reports are retained for <strong class="text-white">90 days</strong> then automatically deleted. Audit logs are retained for <strong class="text-white">1 year</strong> as required by law. Blockchain hash anchors are permanent. You may request early deletion by contacting us — the blockchain hash anchor remains even after report deletion.</p>
+        </section>
+
+        <section>
+            <h2 class="text-white font-bold text-xl mb-3">6. Access Tiers & Data Visibility</h2>
+            <ul class="space-y-2 text-slate-400">
+                <li><strong class="text-white">Individual:</strong> Only you can see your reports.</li>
+                <li><strong class="text-white">Organization:</strong> All org members can view all analyses under the org account.</li>
+                <li><strong class="text-white">Cyber Professional:</strong> Extended forensic data access. All queries permanently logged without exception.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="text-white font-bold text-xl mb-3">7. Prohibited Use</h2>
+            <p>You must not use EmailGuard AI to test phishing infrastructure you operate, to analyze emails of individuals without their consent, or to attempt to extract information about other users' analyses. Violations result in immediate account suspension and may be reported to law enforcement.</p>
+        </section>
+
+        <section>
+            <h2 class="text-white font-bold text-xl mb-3">8. Disclaimer</h2>
+            <p>EmailGuard AI is a threat detection tool and does not guarantee detection of all phishing attempts. Results are advisory. We are not liable for damages resulting from reliance on analysis results. The system achieves 93% accuracy on our test dataset; real-world performance may vary.</p>
+        </section>
+
+        <section>
+            <h2 class="text-white font-bold text-xl mb-3">9. Contact</h2>
+            <p>For data deletion, access inquiries, or Cyber Professional applications: <span class="text-indigo-400">emailguard.sih2026@gmail.com</span>. Response within 7 business days.</p>
+        </section>
+
+    </div>
+
+    <div class="mt-12 text-center">
+        <a href="signup.html" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-8 py-3 rounded-xl transition">
+            Create Account →
+        </a>
+    </div>
+</main>
+</body>
+</html>

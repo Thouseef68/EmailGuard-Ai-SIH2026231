@@ -1,0 +1,45 @@
+/* css/custom.css — only what Tailwind CDN can't handle */
+
+/* Smooth scrollbar */
+* { scrollbar-width: thin; scrollbar-color: #334155 #0f172a; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0f172a; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* Leaflet map dark override */
+.leaflet-container { background: #1e293b !important; }
+.leaflet-tile { filter: brightness(0.7) invert(1) contrast(1.2) hue-rotate(200deg) saturate(0.8); }
+
+/* Smooth transitions */
+* { transition-property: color, background-color, border-color, opacity;
+    transition-duration: 150ms; }
+
+/* Code blocks */
+code { font-family: 'Courier New', monospace; }
+
+/* Chart canvas */
+canvas { max-width: 100%; }
+
+/* Animate pulse for pending states */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+.animate-pulse { animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+
+/* Dark Leaflet popup */
+.dark-popup .leaflet-popup-content-wrapper {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6) !important;
+    padding: 0 !important;
+    border-radius: 10px !important;
+    overflow: hidden;
+}
+.dark-popup .leaflet-popup-tip-container {
+    display: none;
+}
+.dark-popup .leaflet-popup-content {
+    margin: 0 !important;
+}
