@@ -47,30 +47,19 @@ Upload any `.eml` file. In seconds, the system:
 
 ## 🏗️ Architecture
 
-┌─────────────────────────────────────────────────────────────┐
-│ Vercel Frontend (React) │
-│ Upload .eml → View Report + Map │
-└────────────────────────┬────────────────────────────────────┘
-│ HTTPS
-┌────────────────────────▼────────────────────────────────────┐
-│ Modal FastAPI Backend │
-│ │
-│ ┌─────────────┐ ┌──────────────┐ ┌───────────────────┐ │
-│ │ Layer 1 │ │ Layer 2 │ │ Layer 3 │ │
-│ │ AI Detection│ │ Forensics │ │ Report + GeoIP │ │
-│ │ │ │ │ │ │ │
-│ │ DeBERTa V12 │ │ SPF/DKIM/ │ │ SHAP Heatmap │ │
-│ │ XGBoost V3 │ │ DMARC Auth │ │ PII Masking │ │
-│ │ Fusion Gate │ │ Typosquatting│ │ Blockchain Anchor │ │
-│ │ Zero-Shot │ │ URL Reputation│ │ GeoIP Map │ │
-│ │ NLI Intent │ │ WHOIS Age │ │ Forensic PDF │ │
-│ └─────────────┘ └──────────────┘ └───────────────────┘ │
-└────────────────────────┬────────────────────────────────────┘
-│
-┌────────────────────────▼────────────────────────────────────┐
-│ Hugging Face Hub (thouseeff/sih-phishing-models) │
-│ DeBERTa V12 · XGBoost V3 · Fusion Config │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    A["🖥️ Vercel Frontend (React)\nUpload .eml → View Report + Map"]
+    B["⚡ Modal FastAPI Backend (Serverless)"]
+    C["🤗 Hugging Face Hub\nthouseeff/sih-phishing-models"]
+
+    A -->|HTTPS| B
+    B -->|Load Models| C
+
+    B --> L1["🧠 Layer 1 — AI Detection\nDeBERTa V12 · XGBoost V3\nFusion Gate · Zero-Shot NLI · HITL"]
+    B --> L2["🔍 Layer 2 — Forensics\nSPF/DKIM/DMARC · Typosquatting\nURL Reputation · WHOIS Age · Vision"]
+    B --> L3["📊 Layer 3 — Report & Compliance\nSHAP Heatmap · GeoIP Map\nPII Masking · Blockchain Anchor"]
+```
 
 
 ---
