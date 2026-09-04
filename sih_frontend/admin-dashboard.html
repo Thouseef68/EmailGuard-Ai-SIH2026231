@@ -391,12 +391,17 @@
   let currentAnalysisIdx = null
 
   // ── AUTH ────────────────────────────────────────────────
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) { window.location.href = 'admin-login.html' }
-  else {
-    document.getElementById('adminEmail').textContent = session.user.email
-    loadAll()
-  }
+const { data: { session } } = await supabase.auth.getSession()
+
+if (!session) {
+  window.location.href = 'admin-login.html'
+} else if (session.user?.user_metadata?.role !== 'admin') {
+  await supabase.auth.signOut()
+  window.location.href = 'admin-login.html'
+} else {
+  document.getElementById('adminEmail').textContent = session.user.email
+  loadAll()
+}
 
   window.handleLogout = async function () {
     await supabase.auth.signOut()

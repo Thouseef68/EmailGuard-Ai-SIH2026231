@@ -84,6 +84,18 @@
       return
     }
 
+    // STRICT ADMIN CHECK
+    const userRole = data.user?.user_metadata?.role
+
+    if (userRole !== 'admin') {
+      await supabase.auth.signOut()
+      errorBox.textContent = 'Access Denied: This portal is restricted to system administrators.'
+      errorBox.style.display = 'block'
+      btn.disabled = false
+      btn.innerHTML = 'Access Admin Panel'
+      return
+    }
+
     window.location.href = 'admin-dashboard.html'
   }
 </script>
