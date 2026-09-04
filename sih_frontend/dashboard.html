@@ -140,6 +140,11 @@
                     <span class="text-xl">🛡️</span>
                     <span class="text-slate-300 text-sm">Apply for Cyber Access</span>
                 </a>
+                <a href="org-login.html"
+                    class="flex items-center gap-3 p-3 bg-slate-800 hover:bg-slate-700 rounded-xl transition">
+                    <span class="text-xl">🏢</span>
+                    <span class="text-slate-300 text-sm">Organisation Portal</span>
+                </a>
             </div>
         </div>
     </div>
@@ -218,7 +223,12 @@
 <script>
     if (!Auth.isLoggedIn()) window.location.href = "login.html";
     Auth.updateNavbar();
+
+    const role = Auth.getRole();
+    if (role === 'cyber') { window.location.href = 'org-login.html'; }
+    if (role === 'admin') { window.location.href = 'admin-login.html'; }
+
     DashboardController.init();
-</script>
+    </script>
 </body>
 </html>

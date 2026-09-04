@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EmailGuard AI — Organisation Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0d1117;
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      color: #cdd9e5;
+    }
+
+    nav {
+      background: #161b22;
+      border-bottom: 1px solid #21262d;
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-left { display: flex; align-items: center; gap: 16px; }
+    .nav-logo { font-size: 18px; font-weight: 700; color: #fff; }
+    .nav-logo span { color: #00d4ff; }
+
+    .nav-badge {
+      background: rgba(0,212,255,0.1);
+      border: 1px solid rgba(0,212,255,0.25);
+      color: #00d4ff;
+      font-size: 10px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .org-name { font-size: 13px; color: #8b949e; }
+    .org-name span { color: #fff; font-weight: 600; }
+
+    .logout-btn {
+      background: transparent;
+      border: 1px solid #30363d;
+      color: #8b949e;
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .logout-btn:hover { border-color: #ff4545; color: #ff4545; }
+
+    .main { max-width: 1100px; margin: 0 auto; padding: 36px 24px; }
+
+    .page-header { margin-bottom: 32px; }
+    .page-header h1 { font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .page-header p { color: #8b949e; font-size: 14px; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 12px;
+      padding: 20px 22px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value { font-size: 28px; font-weight: 700; color: #fff; }
+    .stat-value.red   { color: #ff4545; }
+    .stat-value.green { color: #3fb950; }
+    .stat-value.gold  { color: #ffd700; }
+    .stat-value.cyan  { color: #00d4ff; }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #21262d;
+    }
+
+    .upload-card {
+      background: #161b22;
+      border: 2px dashed #30363d;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      margin-bottom: 32px;
+      transition: border-color 0.2s;
+      cursor: pointer;
+    }
+    .upload-card:hover { border-color: #00d4ff; }
+    .upload-card.dragover {
+      border-color: #00d4ff;
+      background: rgba(0,212,255,0.05);
+    }
+    .upload-icon { font-size: 40px; margin-bottom: 12px; }
+    .upload-card h3 { color: #fff; font-size: 16px; margin-bottom: 6px; }
+    .upload-card p { color: #8b949e; font-size: 13px; margin-bottom: 20px; }
+
+    .upload-btn {
+      background: #00d4ff;
+      color: #0d1117;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 28px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .upload-btn:hover { opacity: 0.88; }
+    #fileInput { display: none; }
+
+    .result-card {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+      display: none;
+    }
+
+    .verdict {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .verdict.phishing  { background: rgba(255,69,69,0.15);  color: #ff4545; border: 1px solid rgba(255,69,69,0.3); }
+    .verdict.legitimate{ background: rgba(63,185,80,0.15);  color: #3fb950; border: 1px solid rgba(63,185,80,0.3); }
+    .verdict.uncertain { background: rgba(255,215,0,0.15);  color: #ffd700; border: 1px solid rgba(255,215,0,0.3); }
+
+    .score-bar-wrap {
+      background: #0d1117;
+      border-radius: 8px;
+      height: 8px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .score-bar {
+      height: 100%;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #3fb950, #ffd700, #ff4545);
+      transition: width 0.8s ease;
+    }
+
+    .result-meta {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .meta-item {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .meta-item label {
+      font-size: 11px;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .meta-item span { font-size: 13px; color: #fff; font-weight: 600; }
+
+    .download-btn {
+      margin-top: 18px;
+      background: transparent;
+      border: 1px solid #00d4ff;
+      color: #00d4ff;
+      border-radius: 8px;
+      padding: 9px 22px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .download-btn:hover { background: rgba(0,212,255,0.1); }
+
+    /* HISTORY TABLE */
+    .history-card {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .history-header {
+      padding: 16px 22px;
+      border-bottom: 1px solid #21262d;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .history-header h3 { font-size: 14px; color: #fff; font-weight: 600; }
+    .history-header p  { font-size: 12px; color: #8b949e; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+    thead th {
+      background: #0d1117;
+      padding: 11px 18px;
+      text-align: left;
+      color: #8b949e;
+      font-weight: 500;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    tbody tr {
+      border-top: 1px solid #21262d;
+      transition: background 0.15s;
+      cursor: pointer;
+    }
+    tbody tr:hover { background: rgba(0,212,255,0.04); }
+
+    tbody td { padding: 12px 18px; color: #cdd9e5; }
+
+    .pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .pill.phishing  { background: rgba(255,69,69,0.15);  color: #ff4545; }
+    .pill.legitimate{ background: rgba(63,185,80,0.15);  color: #3fb950; }
+    .pill.uncertain { background: rgba(255,215,0,0.15);  color: #ffd700; }
+
+    .row-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      background: transparent;
+      border: 1px solid #30363d;
+      color: #8b949e;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .action-btn:hover { border-color: #00d4ff; color: #00d4ff; }
+    .action-btn.dl:hover { border-color: #3fb950; color: #3fb950; }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px;
+      color: #8b949e;
+      font-size: 14px;
+    }
+
+    /* MODAL POPUP */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 720px;
+      max-height: 88vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .modal-header {
+      padding: 22px 28px;
+      border-bottom: 1px solid #21262d;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      position: sticky;
+      top: 0;
+      background: #161b22;
+      z-index: 10;
+    }
+
+    .modal-header h2 { font-size: 17px; color: #fff; font-weight: 700; margin-bottom: 4px; }
+    .modal-header p  { font-size: 12px; color: #8b949e; }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: #8b949e;
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .modal-close:hover { background: #21262d; color: #fff; }
+
+    .modal-body { padding: 24px 28px; }
+
+    .modal-verdict {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .modal-score-wrap {
+      background: #0d1117;
+      border-radius: 8px;
+      height: 10px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .modal-score-bar {
+      height: 100%;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #3fb950, #ffd700, #ff4545);
+    }
+
+    .modal-section { margin-bottom: 22px; }
+    .modal-section-title {
+      font-size: 11px;
+      color: #00d4ff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #21262d;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .modal-grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+    .modal-field {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .modal-field label {
+      font-size: 11px;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .modal-field span { font-size: 13px; color: #fff; font-weight: 600; word-break: break-all; }
+
+    .auth-matrix {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .auth-item {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+    }
+    .auth-item label {
+      font-size: 11px;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .auth-pass { color: #3fb950; font-weight: 700; font-size: 15px; }
+    .auth-fail { color: #ff4545; font-weight: 700; font-size: 15px; }
+    .auth-na   { color: #8b949e; font-weight: 700; font-size: 15px; }
+
+    .intent-badge {
+      display: inline-block;
+      background: rgba(139,92,246,0.15);
+      border: 1px solid rgba(139,92,246,0.3);
+      color: #a78bfa;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+
+    .modal-footer {
+      padding: 18px 28px;
+      border-top: 1px solid #21262d;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .btn-primary {
+      background: #00d4ff;
+      color: #0d1117;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 22px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary:hover { opacity: 0.88; }
+
+    .btn-secondary {
+      background: transparent;
+      color: #8b949e;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 10px 22px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover { border-color: #8b949e; color: #fff; }
+
+    .blockchain-box {
+      background: #0d1117;
+      border: 1px solid #21262d;
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .blockchain-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid #21262d;
+      font-size: 12px;
+    }
+    .blockchain-row:last-child { border-bottom: none; }
+    .blockchain-row label { color: #8b949e; }
+    .blockchain-row span  { color: #fff; font-weight: 600; word-break: break-all; max-width: 60%; text-align: right; }
+
+    .spinner {
+      display: inline-block;
+      width: 20px; height: 20px;
+      border: 2px solid #21262d;
+      border-top: 2px solid #00d4ff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2,1fr); }
+      .result-meta { grid-template-columns: 1fr 1fr; }
+      .modal-grid, .modal-grid-3, .auth-matrix { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <div class="nav-logo">🛡️ Email<span>Guard</span> AI</div>
+    <span class="nav-badge">Organisation</span>
+  </div>
+  <div class="nav-right">
+    <div class="org-name">Logged in as <span id="userEmail">—</span></div>
+    <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+  <div class="page-header">
+    <h1>Organisation Dashboard</h1>
+    <p>Analyze emails, view forensic reports, and track threat history for your organisation.</p>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Analyzed</div>
+      <div class="stat-value cyan" id="statTotal">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Phishing Detected</div>
+      <div class="stat-value red" id="statPhishing">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Legitimate</div>
+      <div class="stat-value green" id="statLegitimate">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Uncertain / Flagged</div>
+      <div class="stat-value gold" id="statUncertain">0</div>
+    </div>
+  </div>
+
+  <!-- UPLOAD -->
+  <div class="section-title">Analyze New Email</div>
+
+  <div class="upload-card" id="dropZone"
+       onclick="document.getElementById('fileInput').click()"
+       ondragover="handleDragOver(event)"
+       ondragleave="handleDragLeave(event)"
+       ondrop="handleDrop(event)">
+    <div class="upload-icon">📧</div>
+    <h3>Drop your .eml file here</h3>
+    <p>Drag and drop or click to browse. Supports .eml format only.</p>
+    <button class="upload-btn" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">
+      Choose .eml File
+    </button>
+    <input type="file" id="fileInput" accept=".eml" onchange="handleFile(event)" />
+  </div>
+
+  <!-- LATEST RESULT -->
+  <div class="result-card" id="resultCard">
+    <div class="section-title">Latest Analysis Result</div>
+    <div class="verdict" id="verdictBadge">—</div>
+    <div class="score-bar-wrap">
+      <div class="score-bar" id="scoreBar" style="width:0%"></div>
+    </div>
+    <div class="result-meta">
+      <div class="meta-item"><label>Fusion Score</label><span id="metaScore">—</span></div>
+      <div class="meta-item"><label>Origin IP</label><span id="metaIP">—</span></div>
+      <div class="meta-item"><label>Origin Country</label><span id="metaCountry">—</span></div>
+      <div class="meta-item"><label>SPF</label><span id="metaSPF">—</span></div>
+      <div class="meta-item"><label>DKIM</label><span id="metaDKIM">—</span></div>
+      <div class="meta-item"><label>Domain Age</label><span id="metaDomain">—</span></div>
+    </div>
+    <button class="download-btn" id="downloadLatestBtn" onclick="downloadCurrentReport()">
+      ⬇️ Download Forensic Report (JSON)
+    </button>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="section-title">Analysis History</div>
+  <div class="history-card">
+    <div class="history-header">
+    <h3>Past Analyses</h3>
+    <div style="display:flex;align-items:center;gap:10px">
+        <p>Click any row to view full forensic report</p>
+        <button class="action-btn dl" onclick="exportCSV()">⬇️ Export CSV</button>
+    </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>File Name</th>
+          <th>Verdict</th>
+          <th>Score</th>
+          <th>Origin IP</th>
+          <th>Country</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="historyBody">
+        <tr>
+          <td colspan="7">
+            <div class="empty-state">No analyses yet. Upload your first .eml file above.</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- FORENSIC POPUP MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modalBox">
+
+    <div class="modal-header">
+      <div>
+        <h2 id="modalFileName">Forensic Report</h2>
+        <p id="modalDate">—</p>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- VERDICT -->
+      <div id="modalVerdict" class="modal-verdict">—</div>
+      <div class="modal-score-wrap">
+        <div class="modal-score-bar" id="modalScoreBar" style="width:0%"></div>
+      </div>
+
+      <!-- AI SCORES -->
+      <div class="modal-section">
+        <div class="modal-section-title">AI Detection Scores</div>
+        <div class="modal-grid modal-grid-3">
+          <div class="modal-field"><label>Fusion Score</label><span id="mFusion">—</span></div>
+          <div class="modal-field"><label>DeBERTa Score</label><span id="mDeberta">—</span></div>
+          <div class="modal-field"><label>XGBoost Score</label><span id="mXgboost">—</span></div>
+        </div>
+      </div>
+
+      <!-- EMAIL IDENTITY -->
+      <div class="modal-section">
+        <div class="modal-section-title">Email Identity</div>
+        <div class="modal-grid">
+          <div class="modal-field"><label>From</label><span id="mFrom">—</span></div>
+          <div class="modal-field"><label>Reply-To</label><span id="mReplyTo">—</span></div>
+          <div class="modal-field"><label>Sender Domain</label><span id="mDomain">—</span></div>
+          <div class="modal-field"><label>Domain Age</label><span id="mDomainAge">—</span></div>
+        </div>
+      </div>
+
+      <!-- AUTH MATRIX -->
+      <div class="modal-section">
+        <div class="modal-section-title">Authentication Matrix</div>
+        <div class="auth-matrix">
+          <div class="auth-item">
+            <label>SPF</label>
+            <div id="mSPF" class="auth-na">—</div>
+          </div>
+          <div class="auth-item">
+            <label>DKIM</label>
+            <div id="mDKIM" class="auth-na">—</div>
+          </div>
+          <div class="auth-item">
+            <label>DMARC</label>
+            <div id="mDMARC" class="auth-na">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GEO INTELLIGENCE -->
+      <div class="modal-section">
+        <div class="modal-section-title">GeoIntelligence — Attacker Origin</div>
+        <div class="modal-grid modal-grid-3">
+          <div class="modal-field"><label>Origin IP</label><span id="mIP">—</span></div>
+          <div class="modal-field"><label>Country</label><span id="mCountry">—</span></div>
+          <div class="modal-field"><label>ISP / ASN</label><span id="mISP">—</span></div>
+        </div>
+      </div>
+
+      <!-- INTENT -->
+      <div class="modal-section">
+        <div class="modal-section-title">Detected Intent</div>
+        <div id="mIntents">—</div>
+      </div>
+
+      <!-- TYPOSQUAT -->
+      <div class="modal-section">
+        <div class="modal-section-title">Typosquatting & URL Analysis</div>
+        <div class="modal-grid">
+          <div class="modal-field"><label>Typosquat Detected</label><span id="mTypo">—</span></div>
+          <div class="modal-field"><label>Suspicious URLs</label><span id="mURLs">—</span></div>
+        </div>
+      </div>
+
+      <!-- BLOCKCHAIN -->
+      <div class="modal-section">
+        <div class="modal-section-title">Blockchain Evidence Anchor</div>
+        <div class="blockchain-box">
+          <div class="blockchain-row"><label>SHA-256 Hash</label><span id="mHash">—</span></div>
+          <div class="blockchain-row"><label>IPFS CID</label><span id="mIPFS">—</span></div>
+          <div class="blockchain-row"><label>Tx Hash (Polygon Sepolia)</label><span id="mTx">—</span></div>
+          <div class="blockchain-row"><label>Legal Compliance</label><span style="color:#3fb950">BSA 2023 · Indian Evidence Act</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModalDirect()">Close</button>
+      <button class="btn-primary" id="modalDownloadBtn">⬇️ Download Report (JSON)</button>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+  import { supabase } from './js/supabase-config.js'
+
+  const BACKEND_URL =  'https://thouseef68--emailguard-api-web.modal.run'
+
+  let currentReport  = null
+  let historyData    = []
+
+  // ── AUTH CHECK ──────────────────────────────────────────
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) {
+    window.location.href = 'org-login.html'
+  } else {
+    document.getElementById('userEmail').textContent = session.user.email
+    loadHistory(session.user.id)
+  }
+
+  window.handleLogout = async function () {
+    await supabase.auth.signOut()
+    window.location.href = 'org-login.html'
+  }
+
+  // ── DRAG & DROP ─────────────────────────────────────────
+  window.handleDragOver = function (e) {
+    e.preventDefault()
+    document.getElementById('dropZone').classList.add('dragover')
+  }
+  window.handleDragLeave = function () {
+    document.getElementById('dropZone').classList.remove('dragover')
+  }
+  window.handleDrop = function (e) {
+    e.preventDefault()
+    document.getElementById('dropZone').classList.remove('dragover')
+    const file = e.dataTransfer.files[0]
+    if (file && file.name.endsWith('.eml')) processFile(file)
+  }
+  window.handleFile = function (e) {
+    const file = e.target.files[0]
+    if (file) processFile(file)
+  }
+
+  // ── ANALYZE ─────────────────────────────────────────────
+  async function processFile(file) {
+    const resultCard   = document.getElementById('resultCard')
+    const verdictBadge = document.getElementById('verdictBadge')
+
+    resultCard.style.display = 'block'
+    verdictBadge.className   = 'verdict'
+    verdictBadge.innerHTML   = '<div class="spinner"></div> Analyzing...'
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const res  = await fetch(`${BACKEND_URL}/analyze`, { method: 'POST', body: formData })
+      const data = await res.json()
+
+      currentReport = { ...data, file_name: file.name, analyzed_at: new Date().toISOString() }
+
+      const verdict   = (data.verdict || 'UNCERTAIN').toUpperCase()
+      const score     = data.fusion_score ?? data.score ?? 0
+      const ip        = data.origin_ip       || 'N/A'
+      const country   = data.origin_country  || 'N/A'
+      const spf       = data.spf_result      || 'N/A'
+      const dkim      = data.dkim_result     || 'N/A'
+      const domainAge = data.domain_age_days ? `${data.domain_age_days} days` : 'N/A'
+
+      verdictBadge.className   = `verdict ${verdict.toLowerCase()}`
+      verdictBadge.textContent = verdict === 'PHISHING'
+        ? '🚨 PHISHING DETECTED'
+        : verdict === 'LEGITIMATE'
+        ? '✅ LEGITIMATE'
+        : '⚠️ UNCERTAIN — Flagged for Review'
+
+      document.getElementById('scoreBar').style.width = `${(score * 100).toFixed(0)}%`
+      document.getElementById('metaScore').textContent   = `${(score * 100).toFixed(1)}%`
+      document.getElementById('metaIP').textContent      = ip
+      document.getElementById('metaCountry').textContent = country
+      document.getElementById('metaSPF').textContent     = spf
+      document.getElementById('metaDKIM').textContent    = dkim
+      document.getElementById('metaDomain').textContent  = domainAge
+
+      // Save to Supabase
+      const { data: { session } } = await supabase.auth.getSession()
+      await supabase.from('org_analyses').insert({
+        user_id        : session.user.id,
+        file_name      : file.name,
+        verdict        : verdict,
+        score          : score,
+        origin_ip      : ip,
+        origin_country : country,
+        full_report    : data,
+        created_at     : new Date().toISOString()
+      })
+
+      loadHistory(session.user.id)
+
+    } catch (err) {
+      verdictBadge.className   = 'verdict uncertain'
+      verdictBadge.textContent = '⚠️ Backend error — check Modal deployment'
+    }
+  }
+
+  // ── DOWNLOAD CURRENT REPORT ─────────────────────────────
+  window.downloadCurrentReport = function () {
+    if (!currentReport) return
+    downloadJSON(currentReport, currentReport.file_name || 'report')
+  }
+
+  function downloadJSON(data, filename) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `EmailGuard_${filename.replace('.eml','')}_${Date.now()}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+  window.exportCSV = function () {
+  if (!historyData || historyData.length === 0) {
+    alert('No data to export.')
+    return
+  }
+
+  const headers = [
+    'File Name', 'Verdict', 'Score (%)',
+    'Origin IP', 'Country', 'SPF', 'DKIM', 'DMARC',
+    'Domain Age (days)', 'Typosquat', 'Suspicious URLs',
+    'SHA256 Hash', 'IPFS CID', 'Tx Hash', 'Date'
+  ]
+
+  const rows = historyData.map(row => {
+    const r = row.full_report || row
+    return [
+      row.file_name                                      || '',
+      row.verdict                                        || '',
+      row.score ? (row.score * 100).toFixed(1)          : '',
+      row.origin_ip                                      || '',
+      row.origin_country                                 || '',
+      r.spf_result                                       || '',
+      r.dkim_result                                      || '',
+      r.dmarc_result                                     || '',
+      r.domain_age_days                                  || '',
+      r.typosquat_detected ? 'YES' : 'NO',
+      r.suspicious_url_count                             ?? '',
+      r.sha256_hash                                      || '',
+      r.ipfs_cid                                         || '',
+      r.tx_hash                                          || '',
+      new Date(row.created_at).toLocaleString('en-IN')
+    ]
+  })
+
+  const csv = [headers, ...rows]
+    .map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
+    .join('\n')
+
+  const blob = new Blob([csv], { type: 'text/csv' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = `EmailGuard_OrgReport_${Date.now()}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+  // ── HISTORY ─────────────────────────────────────────────
+  async function loadHistory(userId) {
+    const { data } = await supabase
+      .from('org_analyses')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(50)
+
+    historyData = data || []
+    renderHistory(historyData)
+    updateStats(historyData)
+  }
+
+  function renderHistory(data) {
+    const tbody = document.getElementById('historyBody')
+
+    if (!data || data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">No analyses yet. Upload your first .eml file above.</div></td></tr>`
+      return
+    }
+
+    tbody.innerHTML = data.map((row, i) => `
+      <tr onclick="openModal(${i})">
+        <td>📧 ${row.file_name}</td>
+        <td><span class="pill ${(row.verdict||'').toLowerCase()}">${row.verdict || '—'}</span></td>
+        <td>${row.score ? (row.score * 100).toFixed(1) + '%' : '—'}</td>
+        <td>${row.origin_ip || '—'}</td>
+        <td>${row.origin_country || '—'}</td>
+        <td>${new Date(row.created_at).toLocaleDateString('en-IN')}</td>
+        <td>
+          <div class="row-actions" onclick="event.stopPropagation()">
+            <button class="action-btn" onclick="openModal(${i})">🔍 View</button>
+            <button class="action-btn dl" onclick="downloadRow(${i})">⬇️ Download</button>
+          </div>
+        </td>
+      </tr>
+    `).join('')
+  }
+
+  window.downloadRow = function (i) {
+    const row = historyData[i]
+    if (!row) return
+    downloadJSON(row.full_report || row, row.file_name || `report_${i}`)
+  }
+
+  // ── MODAL POPUP ─────────────────────────────────────────
+  window.openModal = function (i) {
+    const row = historyData[i]
+    if (!row) return
+
+    const r       = row.full_report || row
+    const verdict = (row.verdict || 'UNCERTAIN').toUpperCase()
+    const score   = row.score ?? 0
+
+    // Header
+    document.getElementById('modalFileName').textContent = row.file_name || 'Report'
+    document.getElementById('modalDate').textContent     =
+      `Analyzed: ${new Date(row.created_at).toLocaleString('en-IN')}`
+
+    // Verdict
+    const vEl = document.getElementById('modalVerdict')
+    vEl.className   = `modal-verdict ${verdict.toLowerCase()}`
+    vEl.textContent = verdict === 'PHISHING'
+      ? '🚨 PHISHING DETECTED'
+      : verdict === 'LEGITIMATE'
+      ? '✅ LEGITIMATE'
+      : '⚠️ UNCERTAIN'
+
+    // Score bar
+    document.getElementById('modalScoreBar').style.width = `${(score * 100).toFixed(0)}%`
+
+    // AI Scores
+    document.getElementById('mFusion').textContent   = `${(score * 100).toFixed(1)}%`
+    document.getElementById('mDeberta').textContent  = r.deberta_score
+      ? `${(r.deberta_score * 100).toFixed(1)}%` : '—'
+    document.getElementById('mXgboost').textContent  = r.xgboost_score
+      ? `${(r.xgboost_score * 100).toFixed(1)}%` : '—'
+
+    // Email identity
+    document.getElementById('mFrom').textContent      = r.sender_email  || r.from    || '—'
+    document.getElementById('mReplyTo').textContent   = r.reply_to                   || '—'
+    document.getElementById('mDomain').textContent    = r.sender_domain || '—'
+    document.getElementById('mDomainAge').textContent = r.domain_age_days
+      ? `${r.domain_age_days} days` : '—'
+
+    // Auth matrix
+    function authClass(val) {
+      if (!val || val === 'N/A' || val === '—') return 'auth-na'
+      return val.toLowerCase().includes('pass') ? 'auth-pass' : 'auth-fail'
+    }
+    function authSymbol(val) {
+      if (!val || val === 'N/A' || val === '—') return '—'
+      return val.toLowerCase().includes('pass') ? '✅ PASS' : '❌ FAIL'
+    }
+
+    const spfEl   = document.getElementById('mSPF')
+    const dkimEl  = document.getElementById('mDKIM')
+    const dmarcEl = document.getElementById('mDMARC')
+
+    spfEl.className   = authClass(r.spf_result)
+    spfEl.textContent = authSymbol(r.spf_result)
+
+    dkimEl.className   = authClass(r.dkim_result)
+    dkimEl.textContent = authSymbol(r.dkim_result)
+
+    dmarcEl.className   = authClass(r.dmarc_result)
+    dmarcEl.textContent = authSymbol(r.dmarc_result)
+
+    // GeoIP
+    document.getElementById('mIP').textContent      = row.origin_ip      || r.origin_ip      || '—'
+    document.getElementById('mCountry').textContent = row.origin_country  || r.origin_country || '—'
+    document.getElementById('mISP').textContent     = r.origin_isp        || r.origin_asn     || '—'
+
+    // Intent
+    const intents     = r.detected_intents || r.intents || []
+    const intentsEl   = document.getElementById('mIntents')
+    intentsEl.innerHTML = intents.length
+      ? intents.map(i => `<span class="intent-badge">${i}</span>`).join('')
+      : '<span style="color:#8b949e;font-size:13px">No specific intent detected</span>'
+
+    // Typosquat & URLs
+    document.getElementById('mTypo').textContent = r.typosquat_detected
+      ? '⚠️ YES — Suspicious domain' : '✅ None detected'
+    document.getElementById('mURLs').textContent = r.suspicious_url_count != null
+      ? `${r.suspicious_url_count} suspicious URL(s)` : '—'
+
+    // Blockchain
+    document.getElementById('mHash').textContent = r.sha256_hash   || '—'
+    document.getElementById('mIPFS').textContent = r.ipfs_cid      || '—'
+    document.getElementById('mTx').textContent   = r.tx_hash       || '—'
+
+    // Download button inside modal
+    document.getElementById('modalDownloadBtn').onclick = () => downloadRow(i)
+
+    document.getElementById('modalOverlay').classList.add('open')
+  }
+
+  window.closeModal = function (e) {
+    if (e.target.id === 'modalOverlay') closeModalDirect()
+  }
+  window.closeModalDirect = function () {
+    document.getElementById('modalOverlay').classList.remove('open')
+  }
+
+  // ── ESC KEY ─────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModalDirect()
+  })
+
+  // ── STATS ────────────────────────────────────────────────
+  function updateStats(data) {
+    document.getElementById('statTotal').textContent      = data.length
+    document.getElementById('statPhishing').textContent   = data.filter(r => r.verdict === 'PHISHING').length
+    document.getElementById('statLegitimate').textContent = data.filter(r => r.verdict === 'LEGITIMATE').length
+    document.getElementById('statUncertain').textContent  = data.filter(r => r.verdict === 'UNCERTAIN').length
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EmailGuard AI — Admin</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#0d1117;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center}
+    .container{width:100%;max-width:420px;padding:0 20px}
+    .logo{text-align:center;margin-bottom:32px}
+    .logo h1{font-size:26px;font-weight:700;color:#fff}
+    .logo h1 span{color:#ff4545}
+    .logo p{color:#8b949e;font-size:13px;margin-top:6px}
+    .badge{display:inline-block;background:rgba(255,69,69,0.1);border:1px solid rgba(255,69,69,0.3);color:#ff4545;font-size:11px;padding:4px 12px;border-radius:20px;margin-top:8px;letter-spacing:1px;text-transform:uppercase}
+    .card{background:#161b22;border:1px solid #21262d;border-radius:16px;padding:36px 32px}
+    .card h2{color:#fff;font-size:18px;font-weight:600;margin-bottom:6px}
+    .card p{color:#8b949e;font-size:13px;margin-bottom:28px}
+    .form-group{margin-bottom:18px}
+    label{display:block;color:#cdd9e5;font-size:13px;font-weight:500;margin-bottom:8px}
+    input{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px 14px;color:#fff;font-size:14px;outline:none;transition:border-color 0.2s}
+    input:focus{border-color:#ff4545}
+    input::placeholder{color:#484f58}
+    .btn{width:100%;background:#ff4545;color:#fff;border:none;border-radius:8px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;transition:opacity 0.2s}
+    .btn:hover{opacity:0.88}
+    .btn:disabled{opacity:0.5;cursor:not-allowed}
+    .error{background:rgba(255,69,69,0.1);border:1px solid rgba(255,69,69,0.3);color:#ff6b6b;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none}
+    .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top:2px solid #fff;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .footer{text-align:center;margin-top:20px;font-size:12px;color:#484f58}
+    .footer a{color:#8b949e;text-decoration:none}
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">
+    <h1>🛡️ Email<span>Guard</span> AI</h1>
+    <p>AI-Powered Email Threat Detection & Forensics</p>
+    <span class="badge">⚡ Admin Portal</span>
+  </div>
+  <div class="card">
+    <h2>Admin Access</h2>
+    <p>Restricted to system administrators only.</p>
+    <div class="error" id="errorBox"></div>
+    <div class="form-group">
+      <label>Admin Email</label>
+      <input type="email" id="email" placeholder="admin@emailguard.ai"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="••••••••"/>
+    </div>
+    <button class="btn" id="loginBtn" onclick="handleLogin()">Access Admin Panel</button>
+  </div>
+  <div class="footer"><a href="index.html">← Back to Home</a></div>
+</div>
+
+<script type="module">
+  import { supabase } from './js/supabase-config.js'
+
+  window.handleLogin = async function () {
+    const email    = document.getElementById('email').value.trim()
+    const password = document.getElementById('password').value
+    const btn      = document.getElementById('loginBtn')
+    const errorBox = document.getElementById('errorBox')
+
+    errorBox.style.display = 'none'
+    if (!email || !password) {
+      errorBox.textContent = 'Enter your admin email and password.'
+      errorBox.style.display = 'block'
+      return
+    }
+
+    btn.disabled = true
+    btn.innerHTML = '<span class="spinner"></span> Authenticating...'
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (error) {
+      errorBox.textContent = 'Invalid credentials.'
+      errorBox.style.display = 'block'
+      btn.disabled = false
+      btn.innerHTML = 'Access Admin Panel'
+      return
+    }
+
+    window.location.href = 'admin-dashboard.html'
+  }
+</script>
+</body>
+</html>

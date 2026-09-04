@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EmailGuard AI — Admin Dashboard</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#0d1117;font-family:'Segoe UI',sans-serif;min-height:100vh;color:#cdd9e5}
+
+    nav{background:#161b22;border-bottom:1px solid #21262d;padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+    .nav-left{display:flex;align-items:center;gap:16px}
+    .nav-logo{font-size:18px;font-weight:700;color:#fff}
+    .nav-logo span{color:#ff4545}
+    .nav-badge{background:rgba(255,69,69,0.1);border:1px solid rgba(255,69,69,0.3);color:#ff4545;font-size:10px;padding:3px 10px;border-radius:20px;letter-spacing:1px;text-transform:uppercase}
+    .nav-right{display:flex;align-items:center;gap:16px}
+    .admin-email{font-size:13px;color:#8b949e}
+    .admin-email span{color:#fff;font-weight:600}
+    .logout-btn{background:transparent;border:1px solid #30363d;color:#8b949e;padding:7px 16px;border-radius:8px;font-size:13px;cursor:pointer;transition:all 0.2s}
+    .logout-btn:hover{border-color:#ff4545;color:#ff4545}
+
+    .main{max-width:1200px;margin:0 auto;padding:36px 24px}
+    .page-header{margin-bottom:32px}
+    .page-header h1{font-size:24px;font-weight:700;color:#fff;margin-bottom:6px}
+    .page-header p{color:#8b949e;font-size:14px}
+
+    /* TABS */
+    .tabs{display:flex;gap:4px;margin-bottom:28px;background:#161b22;border:1px solid #21262d;border-radius:10px;padding:4px;width:fit-content}
+    .tab{padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:#8b949e;transition:all 0.2s;border:none;background:transparent}
+    .tab.active{background:#0d1117;color:#fff}
+    .tab-panel{display:none}
+    .tab-panel.active{display:block}
+
+    /* STATS */
+    .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:32px}
+    .stat-card{background:#161b22;border:1px solid #21262d;border-radius:12px;padding:20px 22px}
+    .stat-label{font-size:12px;color:#8b949e;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px}
+    .stat-value{font-size:28px;font-weight:700;color:#fff}
+    .stat-value.red  {color:#ff4545}
+    .stat-value.green{color:#3fb950}
+    .stat-value.gold {color:#ffd700}
+    .stat-value.cyan {color:#00d4ff}
+    .stat-value.purple{color:#a78bfa}
+
+    .section-title{font-size:14px;font-weight:600;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .section-title::after{content:'';flex:1;height:1px;background:#21262d}
+
+    /* CARDS */
+    .card{background:#161b22;border:1px solid #21262d;border-radius:12px;overflow:hidden;margin-bottom:28px}
+    .card-header{padding:16px 22px;border-bottom:1px solid #21262d;display:flex;justify-content:space-between;align-items:center}
+    .card-header h3{font-size:14px;color:#fff;font-weight:600}
+    .card-header p{font-size:12px;color:#8b949e}
+
+    /* SEARCH BAR */
+    .search-bar{padding:12px 22px;border-bottom:1px solid #21262d;display:flex;gap:10px}
+    .search-bar input{flex:1;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:9px 14px;color:#fff;font-size:13px;outline:none}
+    .search-bar input:focus{border-color:#00d4ff}
+    .search-bar select{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:9px 14px;color:#fff;font-size:13px;outline:none;cursor:pointer}
+
+    /* TABLE */
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    thead th{background:#0d1117;padding:11px 18px;text-align:left;color:#8b949e;font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:0.6px}
+    tbody tr{border-top:1px solid #21262d;transition:background 0.15s;cursor:pointer}
+    tbody tr:hover{background:rgba(255,255,255,0.02)}
+    tbody td{padding:12px 18px;color:#cdd9e5}
+
+    .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+    .pill.phishing  {background:rgba(255,69,69,0.15);color:#ff4545}
+    .pill.legitimate{background:rgba(63,185,80,0.15);color:#3fb950}
+    .pill.uncertain {background:rgba(255,215,0,0.15);color:#ffd700}
+    .pill.pending   {background:rgba(255,215,0,0.15);color:#ffd700}
+    .pill.approved  {background:rgba(63,185,80,0.15);color:#3fb950}
+    .pill.rejected  {background:rgba(255,69,69,0.15);color:#ff4545}
+
+    .row-actions{display:flex;gap:6px}
+    .action-btn{background:transparent;border:1px solid #30363d;color:#8b949e;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+    .action-btn:hover{border-color:#00d4ff;color:#00d4ff}
+    .action-btn.approve:hover{border-color:#3fb950;color:#3fb950}
+    .action-btn.reject:hover{border-color:#ff4545;color:#ff4545}
+    .action-btn.dl:hover{border-color:#a78bfa;color:#a78bfa}
+
+    .empty-state{text-align:center;padding:48px;color:#8b949e;font-size:14px}
+
+    /* APPROVE MODAL */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:999;align-items:center;justify-content:center;padding:24px}
+    .modal-overlay.open{display:flex}
+    .modal{background:#161b22;border:1px solid #21262d;border-radius:16px;width:100%;max-width:680px;max-height:88vh;overflow-y:auto;position:relative}
+    .modal-header{padding:22px 28px;border-bottom:1px solid #21262d;display:flex;justify-content:space-between;align-items:flex-start;position:sticky;top:0;background:#161b22;z-index:10}
+    .modal-header h2{font-size:17px;color:#fff;font-weight:700;margin-bottom:4px}
+    .modal-header p{font-size:12px;color:#8b949e}
+    .modal-close{background:transparent;border:none;color:#8b949e;font-size:22px;cursor:pointer;padding:2px 6px;border-radius:6px;transition:all 0.2s}
+    .modal-close:hover{background:#21262d;color:#fff}
+    .modal-body{padding:24px 28px}
+    .modal-footer{padding:18px 28px;border-top:1px solid #21262d;display:flex;gap:12px;justify-content:flex-end}
+
+    .modal-field{background:#0d1117;border-radius:8px;padding:12px 14px;margin-bottom:12px}
+    .modal-field label{font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:0.6px;display:block;margin-bottom:4px}
+    .modal-field span{font-size:13px;color:#fff;font-weight:600;word-break:break-all}
+
+    .invite-box{background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.25);border-radius:10px;padding:18px;margin-top:16px}
+    .invite-box h4{color:#3fb950;font-size:13px;font-weight:700;margin-bottom:10px}
+    .invite-box p{color:#cdd9e5;font-size:13px;line-height:1.6}
+    .invite-box .email-copy{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+    .invite-box .email-copy span{color:#00d4ff;font-weight:600;font-size:13px}
+    .copy-btn{background:transparent;border:1px solid #30363d;color:#8b949e;border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;transition:all 0.2s}
+    .copy-btn:hover{border-color:#00d4ff;color:#00d4ff}
+
+    .reject-box{background:rgba(255,69,69,0.08);border:1px solid rgba(255,69,69,0.25);border-radius:10px;padding:18px;margin-top:16px}
+    .reject-box h4{color:#ff4545;font-size:13px;font-weight:700;margin-bottom:10px}
+    .reject-box textarea{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:10px 14px;color:#fff;font-size:13px;outline:none;resize:vertical;min-height:80px;font-family:inherit}
+    .reject-box textarea:focus{border-color:#ff4545}
+
+    .btn-approve{background:#3fb950;color:#fff;border:none;border-radius:8px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity 0.2s}
+    .btn-approve:hover{opacity:0.88}
+    .btn-reject{background:#ff4545;color:#fff;border:none;border-radius:8px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity 0.2s}
+    .btn-reject:hover{opacity:0.88}
+    .btn-secondary{background:transparent;color:#8b949e;border:1px solid #30363d;border-radius:8px;padding:10px 22px;font-size:13px;cursor:pointer;transition:all 0.2s}
+    .btn-secondary:hover{border-color:#8b949e;color:#fff}
+    .btn-export{background:transparent;border:1px solid #30363d;color:#8b949e;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s}
+    .btn-export:hover{border-color:#a78bfa;color:#a78bfa}
+
+    /* FORENSIC POPUP */
+    .forensic-section{margin-bottom:20px}
+    .forensic-section-title{font-size:11px;color:#00d4ff;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #21262d}
+    .forensic-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .forensic-grid-3{grid-template-columns:repeat(3,1fr)}
+    .auth-matrix{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .auth-item{background:#0d1117;border-radius:8px;padding:14px;text-align:center}
+    .auth-item label{font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:8px}
+    .auth-pass{color:#3fb950;font-weight:700;font-size:15px}
+    .auth-fail{color:#ff4545;font-weight:700;font-size:15px}
+    .auth-na{color:#8b949e;font-weight:700;font-size:15px}
+    .verdict-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:8px;font-size:18px;font-weight:700;margin-bottom:16px}
+    .verdict-badge.phishing{background:rgba(255,69,69,0.15);color:#ff4545;border:1px solid rgba(255,69,69,0.3)}
+    .verdict-badge.legitimate{background:rgba(63,185,80,0.15);color:#3fb950;border:1px solid rgba(63,185,80,0.3)}
+    .verdict-badge.uncertain{background:rgba(255,215,0,0.15);color:#ffd700;border:1px solid rgba(255,215,0,0.3)}
+    .score-bar-wrap{background:#0d1117;border-radius:8px;height:8px;margin-bottom:20px;overflow:hidden}
+    .score-bar{height:100%;border-radius:8px;background:linear-gradient(90deg,#3fb950,#ffd700,#ff4545)}
+    .intent-badge{display:inline-block;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);color:#a78bfa;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-right:6px;margin-bottom:6px}
+    .blockchain-box{background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:14px}
+    .blockchain-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #21262d;font-size:12px}
+    .blockchain-row:last-child{border-bottom:none}
+    .blockchain-row label{color:#8b949e}
+    .blockchain-row span{color:#fff;font-weight:600;word-break:break-all;max-width:60%;text-align:right}
+
+    .photo-preview{width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-bottom:12px;border:1px solid #21262d}
+
+    .spinner{display:inline-block;width:20px;height:20px;border:2px solid #21262d;border-top:2px solid #00d4ff;border-radius:50%;animation:spin 0.6s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    @media(max-width:900px){
+      .stats-grid{grid-template-columns:repeat(3,1fr)}
+      .forensic-grid,.forensic-grid-3,.auth-matrix{grid-template-columns:1fr 1fr}
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <div class="nav-logo">🛡️ Email<span>Guard</span> AI</div>
+    <span class="nav-badge">⚡ Admin</span>
+  </div>
+  <div class="nav-right">
+    <div class="admin-email">Signed in as <span id="adminEmail">—</span></div>
+    <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+  <div class="page-header">
+    <h1>Admin Dashboard</h1>
+    <p>Full system overview — all users, all analyses, all access requests.</p>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Total Analyses</div><div class="stat-value cyan" id="statTotal">—</div></div>
+    <div class="stat-card"><div class="stat-label">Phishing Detected</div><div class="stat-value red" id="statPhishing">—</div></div>
+    <div class="stat-card"><div class="stat-label">Legitimate</div><div class="stat-value green" id="statLegitimate">—</div></div>
+    <div class="stat-card"><div class="stat-label">Pending Requests</div><div class="stat-value gold" id="statPending">—</div></div>
+    <div class="stat-card"><div class="stat-label">Approved Orgs</div><div class="stat-value purple" id="statApproved">—</div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('requests')">📋 Access Requests</button>
+    <button class="tab" onclick="switchTab('analyses')">📧 All Analyses</button>
+  </div>
+
+  <!-- TAB: REQUESTS -->
+  <div class="tab-panel active" id="tab-requests">
+    <div class="card">
+      <div class="card-header">
+        <h3>Cyber Professional Access Requests</h3>
+        <button class="btn-export" onclick="exportRequestsCSV()">⬇️ Export CSV</button>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="requestSearch" placeholder="Search by name, email, company..." oninput="filterRequests()"/>
+        <select id="requestFilter" onchange="filterRequests()">
+          <option value="all">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Company</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="requestsBody">
+          <tr><td colspan="6"><div class="empty-state">Loading...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: ANALYSES -->
+  <div class="tab-panel" id="tab-analyses">
+    <div class="card">
+      <div class="card-header">
+        <h3>All Cyber Professional Analyses</h3>
+        <button class="btn-export" onclick="exportAnalysesCSV()">⬇️ Export CSV</button>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="analysisSearch" placeholder="Search by file name, IP, country..." oninput="filterAnalyses()"/>
+        <select id="analysisFilter" onchange="filterAnalyses()">
+          <option value="all">All Verdicts</option>
+          <option value="PHISHING">Phishing</option>
+          <option value="LEGITIMATE">Legitimate</option>
+          <option value="UNCERTAIN">Uncertain</option>
+        </select>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>File Name</th>
+            <th>Org Email</th>
+            <th>Verdict</th>
+            <th>Score</th>
+            <th>Origin IP</th>
+            <th>Country</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="analysesBody">
+          <tr><td colspan="8"><div class="empty-state">Loading...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- REQUEST MODAL -->
+<div class="modal-overlay" id="requestModal" onclick="closeModal('requestModal', event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2 id="reqModalName">Access Request</h2>
+        <p id="reqModalDate">—</p>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect('requestModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <img id="reqPhoto" class="photo-preview" src="" alt="ID Photo" style="display:none"/>
+      <div class="modal-field"><label>Full Name</label><span id="reqName">—</span></div>
+      <div class="modal-field"><label>Email</label><span id="reqEmail">—</span></div>
+      <div class="modal-field"><label>Company / Organisation</label><span id="reqCompany">—</span></div>
+      <div class="modal-field"><label>Status</label><span id="reqStatus">—</span></div>
+      <div class="modal-field"><label>Applied On</label><span id="reqDate">—</span></div>
+
+      <!-- APPROVE SECTION -->
+      <div class="invite-box" id="approveSection">
+        <h4>✅ Approve & Grant Access</h4>
+        <p>Click Approve to mark as approved. Then invite this email in Supabase to create their login.</p>
+        <div class="invite-copy" style="margin-top:10px">
+          <div class="email-copy">
+            <span id="inviteEmail">—</span>
+            <button class="copy-btn" onclick="copyEmail()">Copy Email</button>
+          </div>
+          <p style="color:#8b949e;font-size:12px;margin-top:8px">
+            After approving → Supabase → Authentication → Users → Invite User → paste above email
+          </p>
+        </div>
+      </div>
+
+      <!-- REJECT SECTION -->
+      <div class="reject-box" id="rejectSection" style="display:none">
+        <h4>❌ Rejection Reason</h4>
+        <textarea id="rejectNote" placeholder="Enter reason for rejection (optional)..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModalDirect('requestModal')">Close</button>
+      <button class="btn-reject" id="rejectBtn" onclick="handleReject()">Reject</button>
+      <button class="btn-approve" id="approveBtn" onclick="handleApprove()">Approve</button>
+    </div>
+  </div>
+</div>
+
+<!-- FORENSIC MODAL -->
+<div class="modal-overlay" id="forensicModal" onclick="closeModal('forensicModal', event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2 id="fModalFile">Forensic Report</h2>
+        <p id="fModalMeta">—</p>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect('forensicModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="fVerdict" class="verdict-badge">—</div>
+      <div class="score-bar-wrap"><div class="score-bar" id="fScoreBar" style="width:0%"></div></div>
+
+      <div class="forensic-section">
+        <div class="forensic-section-title">AI Detection Scores</div>
+        <div class="forensic-grid forensic-grid-3">
+          <div class="modal-field"><label>Fusion Score</label><span id="fFusion">—</span></div>
+          <div class="modal-field"><label>DeBERTa</label><span id="fDeberta">—</span></div>
+          <div class="modal-field"><label>XGBoost</label><span id="fXgboost">—</span></div>
+        </div>
+      </div>
+
+      <div class="forensic-section">
+        <div class="forensic-section-title">Email Identity</div>
+        <div class="forensic-grid">
+          <div class="modal-field"><label>From</label><span id="fFrom">—</span></div>
+          <div class="modal-field"><label>Reply-To</label><span id="fReplyTo">—</span></div>
+          <div class="modal-field"><label>Sender Domain</label><span id="fDomain">—</span></div>
+          <div class="modal-field"><label>Domain Age</label><span id="fDomainAge">—</span></div>
+        </div>
+      </div>
+
+      <div class="forensic-section">
+        <div class="forensic-section-title">Authentication Matrix</div>
+        <div class="auth-matrix">
+          <div class="auth-item"><label>SPF</label><div id="fSPF" class="auth-na">—</div></div>
+          <div class="auth-item"><label>DKIM</label><div id="fDKIM" class="auth-na">—</div></div>
+          <div class="auth-item"><label>DMARC</label><div id="fDMARC" class="auth-na">—</div></div>
+        </div>
+      </div>
+
+      <div class="forensic-section">
+        <div class="forensic-section-title">GeoIntelligence</div>
+        <div class="forensic-grid forensic-grid-3">
+          <div class="modal-field"><label>Origin IP</label><span id="fIP">—</span></div>
+          <div class="modal-field"><label>Country</label><span id="fCountry">—</span></div>
+          <div class="modal-field"><label>ISP / ASN</label><span id="fISP">—</span></div>
+        </div>
+      </div>
+
+      <div class="forensic-section">
+        <div class="forensic-section-title">Detected Intent</div>
+        <div id="fIntents">—</div>
+      </div>
+
+      <div class="forensic-section">
+        <div class="forensic-section-title">Blockchain Anchor</div>
+        <div class="blockchain-box">
+          <div class="blockchain-row"><label>SHA-256 Hash</label><span id="fHash">—</span></div>
+          <div class="blockchain-row"><label>IPFS CID</label><span id="fIPFS">—</span></div>
+          <div class="blockchain-row"><label>Tx Hash</label><span id="fTx">—</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModalDirect('forensicModal')">Close</button>
+      <button class="btn-approve" style="background:#a78bfa" id="fDownloadBtn">⬇️ Download JSON</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { supabase } from './js/supabase-config.js'
+
+  let allRequests  = []
+  let allAnalyses  = []
+  let currentReqId = null
+  let currentAnalysisIdx = null
+
+  // ── AUTH ────────────────────────────────────────────────
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) { window.location.href = 'admin-login.html' }
+  else {
+    document.getElementById('adminEmail').textContent = session.user.email
+    loadAll()
+  }
+
+  window.handleLogout = async function () {
+    await supabase.auth.signOut()
+    window.location.href = 'admin-login.html'
+  }
+
+  // ── LOAD ALL DATA ───────────────────────────────────────
+  async function loadAll() {
+    await Promise.all([loadRequests(), loadAnalyses()])
+    updateStats()
+  }
+
+  async function loadRequests() {
+    const { data } = await supabase
+      .from('cyber_requests')
+      .select('*')
+      .order('created_at', { ascending: false })
+    allRequests = data || []
+    renderRequests(allRequests)
+  }
+
+  async function loadAnalyses() {
+    const { data } = await supabase
+      .from('org_analyses')
+      .select('*')
+      .order('created_at', { ascending: false })
+    allAnalyses = data || []
+    renderAnalyses(allAnalyses)
+  }
+
+  function updateStats() {
+    document.getElementById('statTotal').textContent     = allAnalyses.length
+    document.getElementById('statPhishing').textContent  = allAnalyses.filter(r => r.verdict === 'PHISHING').length
+    document.getElementById('statLegitimate').textContent= allAnalyses.filter(r => r.verdict === 'LEGITIMATE').length
+    document.getElementById('statPending').textContent   = allRequests.filter(r => r.status === 'pending').length
+    document.getElementById('statApproved').textContent  = allRequests.filter(r => r.status === 'approved').length
+  }
+
+  // ── RENDER REQUESTS ─────────────────────────────────────
+  function renderRequests(data) {
+    const tbody = document.getElementById('requestsBody')
+    if (!data || data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">No access requests yet.</div></td></tr>`
+      return
+    }
+    tbody.innerHTML = data.map((req, i) => `
+      <tr onclick="openRequestModal('${req.id}')">
+        <td>${req.full_name || '—'}</td>
+        <td>${req.email || '—'}</td>
+        <td>${req.company || '—'}</td>
+        <td><span class="pill ${req.status}">${req.status}</span></td>
+        <td>${new Date(req.created_at).toLocaleDateString('en-IN')}</td>
+        <td>
+          <div class="row-actions" onclick="event.stopPropagation()">
+            <button class="action-btn" onclick="openRequestModal('${req.id}')">👁 View</button>
+            ${req.status === 'pending' ? `
+              <button class="action-btn approve" onclick="quickApprove('${req.id}')">✅ Approve</button>
+              <button class="action-btn reject" onclick="quickReject('${req.id}')">❌ Reject</button>
+            ` : ''}
+          </div>
+        </td>
+      </tr>
+    `).join('')
+  }
+
+  // ── RENDER ANALYSES ─────────────────────────────────────
+  function renderAnalyses(data) {
+    const tbody = document.getElementById('analysesBody')
+    if (!data || data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">No analyses yet.</div></td></tr>`
+      return
+    }
+    tbody.innerHTML = data.map((row, i) => `
+      <tr onclick="openForensicModal(${i})">
+        <td>📧 ${row.file_name || '—'}</td>
+        <td style="color:#8b949e;font-size:12px">${row.user_email || row.user_id?.slice(0,8)+'...' || '—'}</td>
+        <td><span class="pill ${(row.verdict||'').toLowerCase()}">${row.verdict || '—'}</span></td>
+        <td>${row.score ? (row.score*100).toFixed(1)+'%' : '—'}</td>
+        <td>${row.origin_ip || '—'}</td>
+        <td>${row.origin_country || '—'}</td>
+        <td>${new Date(row.created_at).toLocaleDateString('en-IN')}</td>
+        <td>
+          <div class="row-actions" onclick="event.stopPropagation()">
+            <button class="action-btn" onclick="openForensicModal(${i})">🔍 View</button>
+            <button class="action-btn dl" onclick="downloadAnalysis(${i})">⬇️ JSON</button>
+          </div>
+        </td>
+      </tr>
+    `).join('')
+  }
+
+  // ── SEARCH & FILTER ─────────────────────────────────────
+  window.filterRequests = function () {
+    const q      = document.getElementById('requestSearch').value.toLowerCase()
+    const status = document.getElementById('requestFilter').value
+    const filtered = allRequests.filter(r => {
+      const matchQ = !q ||
+        (r.full_name||'').toLowerCase().includes(q) ||
+        (r.email||'').toLowerCase().includes(q) ||
+        (r.company||'').toLowerCase().includes(q)
+      const matchS = status === 'all' || r.status === status
+      return matchQ && matchS
+    })
+    renderRequests(filtered)
+  }
+
+  window.filterAnalyses = function () {
+    const q       = document.getElementById('analysisSearch').value.toLowerCase()
+    const verdict = document.getElementById('analysisFilter').value
+    const filtered = allAnalyses.filter(r => {
+      const matchQ = !q ||
+        (r.file_name||'').toLowerCase().includes(q) ||
+        (r.origin_ip||'').toLowerCase().includes(q) ||
+        (r.origin_country||'').toLowerCase().includes(q)
+      const matchV = verdict === 'all' || r.verdict === verdict
+      return matchQ && matchV
+    })
+    renderAnalyses(filtered)
+  }
+
+  // ── REQUEST MODAL ───────────────────────────────────────
+  window.openRequestModal = function (id) {
+    const req = allRequests.find(r => r.id === id)
+    if (!req) return
+    currentReqId = id
+
+    document.getElementById('reqModalName').textContent = req.full_name || 'Request'
+    document.getElementById('reqModalDate').textContent = `Submitted: ${new Date(req.created_at).toLocaleString('en-IN')}`
+    document.getElementById('reqName').textContent    = req.full_name  || '—'
+    document.getElementById('reqEmail').textContent   = req.email      || '—'
+    document.getElementById('reqCompany').textContent = req.company    || '—'
+    document.getElementById('reqStatus').textContent  = req.status     || '—'
+    document.getElementById('reqDate').textContent    = new Date(req.created_at).toLocaleString('en-IN')
+    document.getElementById('inviteEmail').textContent= req.email      || '—'
+
+    const photo = document.getElementById('reqPhoto')
+    if (req.id_photo_url) {
+      photo.src = req.id_photo_url
+      photo.style.display = 'block'
+    } else {
+      photo.style.display = 'none'
+    }
+
+    const approveSection = document.getElementById('approveSection')
+    const rejectSection  = document.getElementById('rejectSection')
+    const approveBtn     = document.getElementById('approveBtn')
+    const rejectBtn      = document.getElementById('rejectBtn')
+
+    if (req.status === 'pending') {
+      approveSection.style.display = 'block'
+      rejectSection.style.display  = 'none'
+      approveBtn.style.display     = 'inline-block'
+      rejectBtn.style.display      = 'inline-block'
+    } else {
+      approveSection.style.display = 'none'
+      rejectSection.style.display  = 'none'
+      approveBtn.style.display     = 'none'
+      rejectBtn.style.display      = 'none'
+    }
+
+    document.getElementById('requestModal').classList.add('open')
+  }
+
+  window.copyEmail = function () {
+    const email = document.getElementById('inviteEmail').textContent
+    navigator.clipboard.writeText(email)
+    document.querySelector('.copy-btn').textContent = 'Copied!'
+    setTimeout(() => document.querySelector('.copy-btn').textContent = 'Copy Email', 2000)
+  }
+
+  window.handleApprove = async function () {
+    if (!currentReqId) return
+    await supabase.from('cyber_requests')
+      .update({ status: 'approved' })
+      .eq('id', currentReqId)
+    closeModalDirect('requestModal')
+    loadAll()
+  }
+
+  window.handleReject = async function () {
+    if (!currentReqId) return
+    const rejectSection = document.getElementById('rejectSection')
+    if (rejectSection.style.display === 'none') {
+      rejectSection.style.display = 'block'
+      return
+    }
+    const note = document.getElementById('rejectNote').value
+    await supabase.from('cyber_requests')
+      .update({ status: 'rejected', notes: note })
+      .eq('id', currentReqId)
+    closeModalDirect('requestModal')
+    loadAll()
+  }
+
+  window.quickApprove = async function (id) {
+    await supabase.from('cyber_requests').update({ status: 'approved' }).eq('id', id)
+    loadAll()
+  }
+
+  window.quickReject = async function (id) {
+    await supabase.from('cyber_requests').update({ status: 'rejected' }).eq('id', id)
+    loadAll()
+  }
+
+  // ── FORENSIC MODAL ──────────────────────────────────────
+  window.openForensicModal = function (i) {
+    const row = allAnalyses[i]
+    if (!row) return
+    currentAnalysisIdx = i
+    const r       = row.full_report || row
+    const verdict = (row.verdict || 'UNCERTAIN').toUpperCase()
+    const score   = row.score ?? 0
+
+    document.getElementById('fModalFile').textContent = row.file_name || 'Report'
+    document.getElementById('fModalMeta').textContent =
+      `User: ${row.user_email || row.user_id?.slice(0,12)+'...' || '—'} · ${new Date(row.created_at).toLocaleString('en-IN')}`
+
+    const vEl = document.getElementById('fVerdict')
+    vEl.className   = `verdict-badge ${verdict.toLowerCase()}`
+    vEl.textContent = verdict === 'PHISHING' ? '🚨 PHISHING DETECTED'
+      : verdict === 'LEGITIMATE' ? '✅ LEGITIMATE' : '⚠️ UNCERTAIN'
+
+    document.getElementById('fScoreBar').style.width = `${(score*100).toFixed(0)}%`
+    document.getElementById('fFusion').textContent   = `${(score*100).toFixed(1)}%`
+    document.getElementById('fDeberta').textContent  = r.deberta_score ? `${(r.deberta_score*100).toFixed(1)}%` : '—'
+    document.getElementById('fXgboost').textContent  = r.xgboost_score ? `${(r.xgboost_score*100).toFixed(1)}%` : '—'
+    document.getElementById('fFrom').textContent     = r.sender_email  || r.from || '—'
+    document.getElementById('fReplyTo').textContent  = r.reply_to      || '—'
+    document.getElementById('fDomain').textContent   = r.sender_domain || '—'
+    document.getElementById('fDomainAge').textContent= r.domain_age_days ? `${r.domain_age_days} days` : '—'
+
+    function authClass(v) { return !v||v==='N/A'?'auth-na':v.toLowerCase().includes('pass')?'auth-pass':'auth-fail' }
+    function authSym(v)   { return !v||v==='N/A'?'—':v.toLowerCase().includes('pass')?'✅ PASS':'❌ FAIL' }
+
+    const spfEl=document.getElementById('fSPF'); spfEl.className=authClass(r.spf_result);   spfEl.textContent=authSym(r.spf_result)
+    const dkimEl=document.getElementById('fDKIM'); dkimEl.className=authClass(r.dkim_result); dkimEl.textContent=authSym(r.dkim_result)
+    const dmarcEl=document.getElementById('fDMARC'); dmarcEl.className=authClass(r.dmarc_result); dmarcEl.textContent=authSym(r.dmarc_result)
+
+    document.getElementById('fIP').textContent      = row.origin_ip     || r.origin_ip     || '—'
+    document.getElementById('fCountry').textContent = row.origin_country || r.origin_country|| '—'
+    document.getElementById('fISP').textContent     = r.origin_isp      || r.origin_asn    || '—'
+
+    const intents = r.detected_intents || r.intents || []
+    document.getElementById('fIntents').innerHTML = intents.length
+      ? intents.map(i => `<span class="intent-badge">${i}</span>`).join('')
+      : '<span style="color:#8b949e;font-size:13px">None detected</span>'
+
+    document.getElementById('fHash').textContent = r.sha256_hash || '—'
+    document.getElementById('fIPFS').textContent = r.ipfs_cid    || '—'
+    document.getElementById('fTx').textContent   = r.tx_hash     || '—'
+
+    document.getElementById('fDownloadBtn').onclick = () => downloadAnalysis(i)
+    document.getElementById('forensicModal').classList.add('open')
+  }
+
+  window.downloadAnalysis = function (i) {
+    const row = allAnalyses[i]
+    if (!row) return
+    const blob = new Blob([JSON.stringify(row.full_report || row, null, 2)], { type: 'application/json' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `Admin_${row.file_name?.replace('.eml','') || 'report'}_${Date.now()}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  // ── CSV EXPORTS ─────────────────────────────────────────
+  window.exportRequestsCSV = function () {
+    if (!allRequests.length) return alert('No data.')
+    const headers = ['Full Name','Email','Company','Status','Date']
+    const rows = allRequests.map(r => [
+      r.full_name||'', r.email||'', r.company||'', r.status||'',
+      new Date(r.created_at).toLocaleString('en-IN')
+    ])
+    downloadCSV([headers,...rows], 'EmailGuard_AccessRequests')
+  }
+
+  window.exportAnalysesCSV = function () {
+    if (!allAnalyses.length) return alert('No data.')
+    const headers = ['File Name','User','Verdict','Score (%)','Origin IP','Country','Date']
+    const rows = allAnalyses.map(r => [
+      r.file_name||'', r.user_email||r.user_id||'', r.verdict||'',
+      r.score?(r.score*100).toFixed(1):'', r.origin_ip||'', r.origin_country||'',
+      new Date(r.created_at).toLocaleString('en-IN')
+    ])
+    downloadCSV([headers,...rows], 'EmailGuard_AllAnalyses')
+  }
+
+  function downloadCSV(data, name) {
+    const csv  = data.map(row => row.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type:'text/csv' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `${name}_${Date.now()}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  // ── MODAL HELPERS ───────────────────────────────────────
+  window.closeModal = function (id, e) {
+    if (e.target.id === id) closeModalDirect(id)
+  }
+  window.closeModalDirect = function (id) {
+    document.getElementById(id).classList.remove('open')
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeModalDirect('requestModal')
+      closeModalDirect('forensicModal')
+    }
+  })
+
+  // ── TABS ────────────────────────────────────────────────
+  window.switchTab = function (tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'))
+    document.getElementById(`tab-${tab}`).classList.add('active')
+    event.target.classList.add('active')
+  }
+</script>
+
+</body>
+</html>

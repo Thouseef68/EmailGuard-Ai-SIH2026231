@@ -207,6 +207,26 @@ function previewFile(input, labelId, previewId) {
     }
 }
 </script>
+
+<!-- ADDED SUBMISSION HANDLER HERE -->
+<script type="module">
+import { supabase } from './js/supabase-config.js'
+
+document.querySelector('form').addEventListener('submit', async (e) => {
+  // Save to Supabase first, then let FormSubmit handle redirect
+  await supabase.from('cyber_requests').insert({
+    full_name   : document.querySelector('[name="full_name"]').value,
+    email       : document.querySelector('[name="email"]').value,
+    company     : document.querySelector('[name="organization"]').value,
+    designation : document.querySelector('[name="designation"]').value,
+    purpose     : document.querySelector('[name="purpose"]').value,
+    status      : 'pending',
+    created_at  : new Date().toISOString()
+  })
+  // Don't call e.preventDefault() — let FormSubmit redirect to cyber-success.html
+})
+</script>
+
 </body>
 </html>
 
