@@ -12,5 +12,6 @@ const CONFIG = {
         USER:  "user",
         ORG:   "org",
         CYBER: "cyber",
+        ADMIN: "admin", 
     },
 };

@@ -23,17 +23,30 @@ const Auth = {
     },
 
     // Log in
+    // Log in
     async login(email, password) {
         const { data, error } = await _supabase.auth.signInWithPassword({
             email,
             password,
         });
         if (error) throw error;
-        // Persist session + user to localStorage
+
+        // 🛡️ STRICT ADMIN CHECK
+        // Get the account role from Supabase metadata
+        const userRole = data.user?.user_metadata?.role;
+
+        // If the logging-in user is NOT an admin, reject them immediately
+        if (userRole !== "admin") {
+            await _supabase.auth.signOut(); // Revoke session
+            throw new Error("Access Denied: This portal is restricted to system administrators.");
+        }
+
+        // Only save session to local storage if they are an admin
         localStorage.setItem("sb_session", JSON.stringify(data.session));
         localStorage.setItem("sb_user",    JSON.stringify(data.user));
         return data;
     },
+
 
     // Log out
     async logout() {
