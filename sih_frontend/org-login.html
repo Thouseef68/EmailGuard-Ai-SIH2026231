@@ -1,206 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EmailGuard AI — Cyber Professional Login</title>
+  <title>EmailGuard AI — Organisation Login</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      background: #0d1117;
-      font-family: 'Segoe UI', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 440px;
-      padding: 0 20px;
-    }
-
-    .logo {
-      text-align: center;
-      margin-bottom: 32px;
-    }
-
-    .logo h1 {
-      font-size: 26px;
-      color: #fff;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-
-    .logo h1 span { color: #00d4ff; }
-
-    .logo p {
-      color: #8b949e;
-      font-size: 13px;
-      margin-top: 6px;
-    }
-
-    .badge {
-      display: inline-block;
-      background: rgba(0, 212, 255, 0.1);
-      border: 1px solid rgba(0, 212, 255, 0.3);
-      color: #00d4ff;
-      font-size: 11px;
-      padding: 4px 12px;
-      border-radius: 20px;
-      margin-top: 8px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .card {
-      background: #161b22;
-      border: 1px solid #21262d;
-      border-radius: 16px;
-      padding: 36px 32px;
-    }
-
-    .card h2 {
-      color: #fff;
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-
-    .card p {
-      color: #8b949e;
-      font-size: 13px;
-      margin-bottom: 28px;
-    }
-
-    .form-group {
-      margin-bottom: 18px;
-    }
-
-    label {
-      display: block;
-      color: #cdd9e5;
-      font-size: 13px;
-      font-weight: 500;
-      margin-bottom: 8px;
-    }
-
-    input {
-      width: 100%;
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 8px;
-      padding: 12px 14px;
-      color: #fff;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    input:focus { border-color: #00d4ff; }
-
-    input::placeholder { color: #484f58; }
-
-    .btn {
-      width: 100%;
-      background: #00d4ff;
-      color: #0d1117;
-      border: none;
-      border-radius: 8px;
-      padding: 13px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 8px;
-      transition: opacity 0.2s;
-      letter-spacing: 0.3px;
-    }
-
-    .btn:hover { opacity: 0.88; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .error {
-      background: rgba(255, 69, 69, 0.1);
-      border: 1px solid rgba(255, 69, 69, 0.3);
-      color: #ff6b6b;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 13px;
-      margin-bottom: 16px;
-      display: none;
-    }
-
-    .divider {
-      border: none;
-      border-top: 1px solid #21262d;
-      margin: 24px 0;
-    }
-
-    .footer-links {
-      text-align: center;
-      font-size: 12px;
-      color: #8b949e;
-    }
-
-    .footer-links a {
-      color: #00d4ff;
-      text-decoration: none;
-    }
-
-    .footer-links a:hover { text-decoration: underline; }
-
-    .spinner {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border: 2px solid #0d1117;
-      border-top: 2px solid transparent;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-      vertical-align: middle;
-      margin-right: 6px;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#0d1117;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center}
+    .container{width:100%;max-width:440px;padding:0 20px}
+    .logo{text-align:center;margin-bottom:32px}
+    .logo h1{font-size:26px;color:#fff;font-weight:700}
+    .logo h1 span{color:#6366f1}
+    .logo p{color:#8b949e;font-size:13px;margin-top:6px}
+    .badge{display:inline-block;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);color:#6366f1;font-size:11px;padding:4px 12px;border-radius:20px;margin-top:8px;letter-spacing:1px;text-transform:uppercase}
+    .card{background:#161b22;border:1px solid #21262d;border-radius:16px;padding:36px 32px}
+    .card h2{color:#fff;font-size:18px;font-weight:600;margin-bottom:6px}
+    .card p{color:#8b949e;font-size:13px;margin-bottom:28px}
+    .form-group{margin-bottom:18px}
+    label{display:block;color:#cdd9e5;font-size:13px;font-weight:500;margin-bottom:8px}
+    input{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px 14px;color:#fff;font-size:14px;outline:none;transition:border-color 0.2s}
+    input:focus{border-color:#6366f1}
+    input::placeholder{color:#484f58}
+    .btn{width:100%;background:#6366f1;color:#fff;border:none;border-radius:8px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;transition:opacity 0.2s}
+    .btn:hover{opacity:0.88}
+    .btn:disabled{opacity:0.5;cursor:not-allowed}
+    .error{background:rgba(255,69,69,0.1);border:1px solid rgba(255,69,69,0.3);color:#ff6b6b;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none}
+    .divider{border:none;border-top:1px solid #21262d;margin:24px 0}
+    .footer-links{text-align:center;font-size:12px;color:#8b949e}
+    .footer-links a{color:#6366f1;text-decoration:none}
+    .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top:2px solid #fff;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px}
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
-
 <div class="container">
   <div class="logo">
     <h1>🛡️ Email<span>Guard</span> AI</h1>
     <p>AI-Powered Email Threat Detection & Forensics</p>
-    <span class="badge">Cyber Professional Portal</span>
+    <span class="badge">🏢 Organisation Portal</span>
   </div>
-
   <div class="card">
     <h2>Organisation Login</h2>
-    <p>Access is restricted to approved organisations only. If you haven't applied, <a href="cyber-apply.html" style="color:#00d4ff;text-decoration:none">request access here</a>.</p>
-
+    <p>Sign in to access your team dashboard, batch analysis, and shared reports.</p>
     <div class="error" id="errorBox"></div>
-
     <div class="form-group">
       <label>Work Email Address</label>
-      <input type="email" id="email" placeholder="you@organisation.com" />
+      <input type="email" id="email" placeholder="you@company.com"/>
     </div>
-
     <div class="form-group">
       <label>Password</label>
-      <input type="password" id="password" placeholder="••••••••" />
+      <input type="password" id="password" placeholder="••••••••"/>
     </div>
-
-    <button class="btn" id="loginBtn" onclick="handleLogin()">
-      Sign In to Cyber Portal
-    </button>
-
-    <hr class="divider" />
-
+    <button class="btn" id="loginBtn" onclick="handleLogin()">Sign In to Organisation Portal</button>
+    <hr class="divider"/>
     <div class="footer-links">
-      	Not a cyber professional? &nbsp;<a href="login.html">User Login</a>
-      &nbsp;·&nbsp;
-      <a href="index.html">Back to Home</a>
+      New organisation? <a href="signup.html?role=org">Register here</a>
+      &nbsp;·&nbsp; <a href="login.html">Individual Login</a>
+      &nbsp;·&nbsp; <a href="index.html">Home</a>
     </div>
   </div>
 </div>
@@ -215,7 +71,6 @@
     const errorBox = document.getElementById('errorBox')
 
     errorBox.style.display = 'none'
-
     if (!email || !password) {
       errorBox.textContent = 'Please enter your email and password.'
       errorBox.style.display = 'block'
@@ -228,19 +83,26 @@
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      errorBox.textContent = error.message === 'Invalid login credentials'
-        ? 'Incorrect email or password. Contact admin if you need access.'
-        : error.message
+      errorBox.textContent = 'Incorrect email or password.'
       errorBox.style.display = 'block'
       btn.disabled = false
       btn.innerHTML = 'Sign In to Organisation Portal'
       return
     }
 
-    // Store session and redirect
+    // Check role
+    const role = data.user?.user_metadata?.role
+    if (role !== 'org') {
+      await supabase.auth.signOut()
+      errorBox.textContent = 'This account is not an Organisation account. Use the correct login.'
+      errorBox.style.display = 'block'
+      btn.disabled = false
+      btn.innerHTML = 'Sign In to Organisation Portal'
+      return
+    }
+
     window.location.href = 'org-dashboard.html'
   }
 </script>
-
 </body>
 </html>
