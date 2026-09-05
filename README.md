@@ -111,35 +111,32 @@ flowchart TD
 
 ---
 
-📁 Project Structure
-│
+### 📁 Project Structure
+
+```text
+EmailGuard-AI/
 ├── 📂 sih_backend/
-│   ├── 📄 main.py            # FastAPI entrypoint
-│   ├── 📄 modal_app.py      # Modal deployment
-│   ├── 📄 config.py          # Env-based secrets config
-│   │
+│   ├── 📄 main.py               # FastAPI entrypoint
+│   ├── 📄 modal_app.py          # Modal deployment
+│   ├── 📄 config.py             # Env-based secrets config
 │   ├── 📂 core/
-│   │   └── 📄 orchestrator.py # Master 11-layer pipeline
-│   │
-│   ├── 📂 eml_parser.py     # .eml parsing
-│   │
-│   ├── 📂 report_schema.py   # Pydantic response schema
-│   │
+│   │   └── 📄 orchestrator.py   # Master 11-layer pipeline
+│   ├── 📄 eml_parser.py         # .eml parsing
+│   ├── 📄 report_schema.py      # Pydantic response schema
 │   ├── 📂 layers/
-│   │   ├── 📄 text_structural/ # DeBERTa + XGBoost + Fusion
-│   │   ├── 📄 forensics/       # Auth, WHOIS, URL, Typosquat
-│   │   ├── 📄 vision/          # OCR, QR, Logo matching
-│   │   ├── 📄 geoip/           # IP geolocation
-│   │   └── 📄 nlp_extra/       # Zero-shot NLI, PII masking
-│   │
+│   │   ├── 📄 text_structural/  # DeBERTa + XGBoost + Fusion
+│   │   ├── 📄 forensics/        # Auth, WHOIS, URL, Typosquat
+│   │   ├── 📄 vision/           # OCR, QR, Logo matching
+│   │   ├── 📄 geoip/            # IP geolocation
+│   │   └── 📄 nlp_extra/        # Zero-shot NLI, PII masking
 │   └── 📂 explainability/
 │       └── 📄 SHAP heatmap
-│
-├── 📂 sih_frontend/          # React frontend (Vercel)
-│
-├── 📄 .env.example           # Template — never commit
+├── 📂 sih_frontend/             # React frontend (Vercel)
+├── 📄 .env.example              # Template — never commit
 ├── 📄 .gitignore
 └── 📄 README.md
+```
+
 
 ---
 
