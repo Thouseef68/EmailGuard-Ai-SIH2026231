@@ -72,8 +72,7 @@
         </div>
 
         <!-- Signup link -->
-        <!-- Signup link -->
-        <p class="text-center text-sm text-slate-400">
+        <p class="text-center text-sm text-slate-400 mb-4">
             Don't have an account?
             <a href="signup.html" class="text-indigo-400 hover:text-indigo-300 font-medium transition">Sign up free</a>
         </p>
@@ -88,14 +87,19 @@
         <!-- Portal links -->
         <div class="flex flex-col gap-2">
             <a href="org-login.html"
-            class="w-full text-center border border-slate-700 hover:border-cyan-500 text-slate-400 hover:text-cyan-400 py-2.5 rounded-xl text-sm transition">
+               class="w-full text-center border border-slate-700 hover:border-indigo-500 text-slate-400 hover:text-indigo-400 py-2.5 rounded-xl text-sm transition">
                 🏢 Organisation Login
             </a>
+            <a href="cyber-login.html"
+               class="w-full text-center border border-slate-700 hover:border-cyan-500 text-slate-400 hover:text-cyan-400 py-2.5 rounded-xl text-sm transition">
+                🛡️ Cyber Professional Login
+            </a>
             <a href="admin-login.html"
-            class="w-full text-center border border-slate-700 hover:border-red-500 text-slate-400 hover:text-red-400 py-2.5 rounded-xl text-sm transition">
+               class="w-full text-center border border-slate-700 hover:border-red-500 text-slate-400 hover:text-red-400 py-2.5 rounded-xl text-sm transition">
                 ⚡ Admin Access
             </a>
         </div>
+    </div>
 
     <!-- Back to home -->
     <p class="text-center mt-6 text-sm text-slate-600">
@@ -109,7 +113,11 @@
 <script>
     // Redirect if already logged in
     if (Auth.isLoggedIn()) {
-        window.location.href = "analyze.html";
+        const role = Auth.getRole()
+        if (role === 'admin')  window.location.href = "admin-dashboard.html"
+        else if (role === 'org')   window.location.href = "org-dashboard.html"
+        else if (role === 'cyber') window.location.href = "cyber-dashboard.html"
+        else window.location.href = "analyze.html"
     }
 
     function togglePassword() {
@@ -133,8 +141,20 @@
         btn.disabled    = true;
 
         try {
-            await Auth.login(email, pass);
-            window.location.href = "analyze.html";
+            const data = await Auth.login(email, pass);
+            const role = data.user?.user_metadata?.role;
+
+            // Redirect based on role
+            if (role === 'admin') {
+                window.location.href = "admin-dashboard.html";
+            } else if (role === 'org') {
+                window.location.href = "org-dashboard.html";
+            } else if (role === 'cyber') {
+                window.location.href = "cyber-dashboard.html";
+            } else {
+                window.location.href = "analyze.html";
+            }
+
         } catch (err) {
             showError(err.message || "Login failed. Please check your credentials.");
             btn.textContent = "Sign In";

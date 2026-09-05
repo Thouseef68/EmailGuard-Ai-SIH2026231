@@ -23,7 +23,6 @@ const Auth = {
     },
 
     // Log in
-    // Log in
     async login(email, password) {
         const { data, error } = await _supabase.auth.signInWithPassword({
             email,
@@ -31,22 +30,11 @@ const Auth = {
         });
         if (error) throw error;
 
-        // 🛡️ STRICT ADMIN CHECK
-        // Get the account role from Supabase metadata
-        const userRole = data.user?.user_metadata?.role;
-
-        // If the logging-in user is NOT an admin, reject them immediately
-        if (userRole !== "admin") {
-            await _supabase.auth.signOut(); // Revoke session
-            throw new Error("Access Denied: This portal is restricted to system administrators.");
-        }
-
-        // Only save session to local storage if they are an admin
+        // Save session
         localStorage.setItem("sb_session", JSON.stringify(data.session));
         localStorage.setItem("sb_user",    JSON.stringify(data.user));
         return data;
     },
-
 
     // Log out
     async logout() {
@@ -62,7 +50,6 @@ const Auth = {
         if (!session) return false;
         try {
             const s = JSON.parse(session);
-            // Check token expiry
             if (s.expires_at && Date.now() / 1000 > s.expires_at) {
                 this.logout();
                 return false;
@@ -86,18 +73,18 @@ const Auth = {
 
     // Update navbar based on auth state
     updateNavbar() {
-        const loggedIn   = this.isLoggedIn();
-        const email      = Utils.getUserEmail();
-        const role       = this.getRole();
+        const loggedIn  = this.isLoggedIn();
+        const email     = Utils.getUserEmail();
+        const role      = this.getRole();
 
-        const guestNav   = document.getElementById("guest-nav");
-        const authNav    = document.getElementById("auth-nav");
-        const userEmail  = document.getElementById("user-email");
-        const userRole   = document.getElementById("user-role");
+        const guestNav  = document.getElementById("guest-nav");
+        const authNav   = document.getElementById("auth-nav");
+        const userEmail = document.getElementById("user-email");
+        const userRole  = document.getElementById("user-role");
 
-        if (guestNav)  guestNav.style.display  = loggedIn ? "none" : "flex";
-        if (authNav)   authNav.style.display   = loggedIn ? "flex" : "none";
-        if (userEmail) userEmail.textContent   = email || "";
-        if (userRole)  userRole.textContent    = role ? role.toUpperCase() : "";
+        if (guestNav)  guestNav.style.display = loggedIn ? "none" : "flex";
+        if (authNav)   authNav.style.display  = loggedIn ? "flex" : "none";
+        if (userEmail) userEmail.textContent  = email || "";
+        if (userRole)  userRole.textContent   = role ? role.toUpperCase() : "";
     },
 };
