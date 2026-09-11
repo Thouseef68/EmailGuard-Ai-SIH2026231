@@ -204,7 +204,7 @@ modal deploy modal_app.py
 
 ## 👥 Team
 
-Built by **Team Cyber Nova ** · Dayananda Sagar University · Bengaluru
+Built by **ZENITH ** · Dayananda Sagar University · Bengaluru
 Smart India Hackathon 2026 · Problem ID: **SIH26106** · Category: Cybersecurity
 
 ---
