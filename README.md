@@ -70,9 +70,9 @@ flowchart TD
 
 | Component | Role | Performance |
 |-----------|------|-------------|
-| **DeBERTa-v3-large** (LoRA fine-tuned) | Semantic content analysis | 86 / 100 blind benchmark |
-| **XGBoost V3** | 42 structural header features | 98.33% accuracy, 99.88% AUC |
-| **Fusion Gate (50/50)** | Weighted ensemble + Veto logic | **93 / 100 on real emails** |
+| **DeBERTa-v3-large** (LoRA fine-tuned) | Semantic content analysis | 95 / 100 blind benchmark |
+| **XGBoost V3** | 42 structural header features | 80.33% accuracy, 80.88% AUC |
+| **Fusion Gate (50/50)** | Weighted ensemble + Veto logic | **90 / 100 on real emails** |
 | **Zero-Shot NLI** | Intent classification (7 labels) | Urgency / Credential / Deception |
 | **HITL Queue** | Uncertainty band 0.40–0.65 | Flagged for human review |
 
