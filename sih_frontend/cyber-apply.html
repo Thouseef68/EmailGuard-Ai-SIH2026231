@@ -4,6 +4,9 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Cyber Access — EmailGuard AI</title>
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico"/>
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/custom.css"/>
 </head>
@@ -12,7 +15,7 @@
 <nav class="fixed top-0 w-full z-50 bg-slate-950/90 backdrop-blur border-b border-slate-800">
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <a href="index.html" class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">E</div>
+            <span class="w-10 h-10 bg-white rounded-lg flex items-center justify-center overflow-hidden"><img src="assets/emailguard-icon-512.png" alt="EmailGuard AI logo" class="w-9 h-9 object-contain"/></span>
             <span class="text-xl font-bold text-white">EmailGuard <span class="text-indigo-400">AI</span></span>
         </a>
         <a href="index.html" class="text-sm text-slate-400 hover:text-white transition">← Back</a>
@@ -208,25 +211,37 @@ function previewFile(input, labelId, previewId) {
 }
 </script>
 
-<!-- ADDED SUBMISSION HANDLER HERE -->
+<!-- Save the application to the database, then let FormSubmit email it (with the documents) -->
 <script type="module">
 import { supabase } from './js/supabase-config.js'
 
-document.querySelector('form').addEventListener('submit', async (e) => {
-  // Save to Supabase first, then let FormSubmit handle redirect
-  await supabase.from('cyber_requests').insert({
-    full_name   : document.querySelector('[name="full_name"]').value,
-    email       : document.querySelector('[name="email"]').value,
-    company     : document.querySelector('[name="organization"]').value,
-    designation : document.querySelector('[name="designation"]').value,
-    purpose     : document.querySelector('[name="purpose"]').value,
-    status      : 'pending',
-    created_at  : new Date().toISOString()
-  })
-  // Don't call e.preventDefault() — let FormSubmit redirect to cyber-success.html
+const form = document.getElementById('apply-form')
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault()                       // browser validation has already passed at this point
+  const btn = document.getElementById('apply-btn')
+  btn.disabled = true
+  btn.textContent = 'Submitting...'
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    const { error } = await supabase.from('cyber_requests').insert({
+      full_name   : form.elements['full_name'].value,
+      email       : form.elements['email'].value,
+      company     : form.elements['organization'].value,
+      designation : form.elements['designation'].value,
+      purpose     : form.elements['purpose'].value,
+      status      : 'pending',
+      user_id     : session?.user?.id ?? null
+    })
+    if (error) console.warn('Could not save to the database (the emailed application still goes through):', error.message)
+  } catch (err) {
+    console.warn('Database save failed (the emailed application still goes through):', err)
+  }
+
+  form.submit()                            // native submit: sends the email and redirects to cyber-success.html
 })
 </script>
 
 </body>
 </html>
-

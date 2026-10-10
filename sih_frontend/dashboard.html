@@ -4,6 +4,9 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Dashboard — EmailGuard AI</title>
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico"/>
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,7 +20,7 @@
 <nav class="fixed top-0 w-full z-50 bg-slate-950/90 backdrop-blur border-b border-slate-800">
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <a href="index.html" class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">E</div>
+            <span class="w-10 h-10 bg-white rounded-lg flex items-center justify-center overflow-hidden"><img src="assets/emailguard-icon-512.png" alt="EmailGuard AI logo" class="w-9 h-9 object-contain"/></span>
             <span class="text-xl font-bold text-white">EmailGuard <span class="text-indigo-400">AI</span></span>
         </a>
         <div class="flex items-center gap-4">
@@ -54,31 +57,6 @@
             <p id="stat-total" class="text-4xl font-bold text-white">—</p>
             <p class="text-slate-400 text-sm mt-1">Total Analyses</p>
         </div>
-        <!-- Live GeoIP Map -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden mb-8">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800">
-                <div>
-                    <h2 class="text-white font-semibold">🌍 Live Attack Origin Map</h2>
-                    <p class="text-slate-400 text-xs mt-0.5">Click any pin to open in Google Maps</p>
-                </div>
-                <div class="flex items-center gap-4 text-xs text-slate-500">
-                    <span class="flex items-center gap-1.5">
-                        <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span> Phishing
-                    </span>
-                    <span class="flex items-center gap-1.5">
-                        <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span> Legitimate
-                    </span>
-                    <span class="flex items-center gap-1.5">
-                        <span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span> Needs Review
-                    </span>
-                </div>
-            </div>
-            <div id="dashboard-map" style="height: 380px; width: 100%;"></div>
-            <div class="px-6 py-3 border-t border-slate-800 flex items-center justify-between">
-                <p id="map-summary" class="text-slate-500 text-xs"></p>
-                <p class="text-slate-600 text-xs">© OpenStreetMap contributors</p>
-            </div>
-        </div>
         <div class="bg-slate-900 border border-red-500/30 rounded-2xl p-5 text-center">
             <p id="stat-phishing" class="text-4xl font-bold text-red-400">—</p>
             <p class="text-slate-400 text-sm mt-1">Phishing</p>
@@ -90,6 +68,32 @@
         <div class="bg-slate-900 border border-yellow-500/30 rounded-2xl p-5 text-center">
             <p id="stat-hitl" class="text-4xl font-bold text-yellow-400">—</p>
             <p class="text-slate-400 text-sm mt-1">Needs Review</p>
+        </div>
+    </div>
+
+    <!-- Live GeoIP Map -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden mb-8">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+            <div>
+                <h2 class="text-white font-semibold">🌍 Live Attack Origin Map</h2>
+                <p class="text-slate-400 text-xs mt-0.5">Click any pin to open in Google Maps</p>
+            </div>
+            <div class="flex items-center gap-4 text-xs text-slate-500">
+                <span class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span> Phishing
+                </span>
+                <span class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span> Legitimate
+                </span>
+                <span class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span> Needs Review
+                </span>
+            </div>
+        </div>
+        <div id="dashboard-map" style="height: 380px; width: 100%;"></div>
+        <div class="px-6 py-3 border-t border-slate-800 flex items-center justify-between">
+            <p id="map-summary" class="text-slate-500 text-xs"></p>
+            <p class="text-slate-600 text-xs">© OpenStreetMap contributors</p>
         </div>
     </div>
 

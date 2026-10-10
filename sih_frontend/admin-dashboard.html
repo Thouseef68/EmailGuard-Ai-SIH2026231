@@ -4,13 +4,17 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EmailGuard AI — Admin Dashboard</title>
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png"/>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{background:#0d1117;font-family:'Segoe UI',sans-serif;min-height:100vh;color:#cdd9e5}
 
     nav{background:#161b22;border-bottom:1px solid #21262d;padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
     .nav-left{display:flex;align-items:center;gap:16px}
-    .nav-logo{font-size:18px;font-weight:700;color:#fff}
+    .nav-logo{font-size:18px;font-weight:700;color:#fff;display:flex;align-items:center;gap:10px}
+    .nav-logo img{width:34px;height:34px;border-radius:8px;background:#fff;padding:3px;object-fit:contain}
     .nav-logo span{color:#ff4545}
     .nav-badge{background:rgba(255,69,69,0.1);border:1px solid rgba(255,69,69,0.3);color:#ff4545;font-size:10px;padding:3px 10px;border-radius:20px;letter-spacing:1px;text-transform:uppercase}
     .nav-right{display:flex;align-items:center;gap:16px}
@@ -159,7 +163,7 @@
 <!-- NAV -->
 <nav>
   <div class="nav-left">
-    <div class="nav-logo">🛡️ Email<span>Guard</span> AI</div>
+    <div class="nav-logo"><img src="assets/emailguard-icon-512.png" alt="EmailGuard AI logo"/><div>Email<span>Guard</span> AI</div></div>
     <span class="nav-badge">⚡ Admin</span>
   </div>
   <div class="nav-right">
@@ -395,7 +399,7 @@ const { data: { session } } = await supabase.auth.getSession()
 
 if (!session) {
   window.location.href = 'admin-login.html'
-} else if (session.user?.user_metadata?.role !== 'admin') {
+} else if (session.user?.app_metadata?.role !== 'admin') {   // app_metadata: server-set only (user_metadata is user-editable)
   await supabase.auth.signOut()
   window.location.href = 'admin-login.html'
 } else {

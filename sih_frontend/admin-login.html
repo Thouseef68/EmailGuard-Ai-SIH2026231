@@ -4,11 +4,15 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EmailGuard AI — Admin</title>
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png"/>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{background:#0d1117;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center}
     .container{width:100%;max-width:420px;padding:0 20px}
     .logo{text-align:center;margin-bottom:32px}
+    .logo img{width:72px;height:72px;border-radius:14px;background:#fff;padding:6px;object-fit:contain;margin-bottom:12px}
     .logo h1{font-size:26px;font-weight:700;color:#fff}
     .logo h1 span{color:#ff4545}
     .logo p{color:#8b949e;font-size:13px;margin-top:6px}
@@ -34,7 +38,8 @@
 <body>
 <div class="container">
   <div class="logo">
-    <h1>🛡️ Email<span>Guard</span> AI</h1>
+    <img src="assets/emailguard-icon-512.png" alt="EmailGuard AI logo"/>
+    <h1>Email<span>Guard</span> AI</h1>
     <p>AI-Powered Email Threat Detection & Forensics</p>
     <span class="badge">⚡ Admin Portal</span>
   </div>
@@ -44,7 +49,7 @@
     <div class="error" id="errorBox"></div>
     <div class="form-group">
       <label>Admin Email</label>
-      <input type="email" id="email" placeholder="admin@emailguard.ai"/>
+      <input type="email" id="email" placeholder="admin@emailguardai.me"/>
     </div>
     <div class="form-group">
       <label>Password</label>
@@ -85,7 +90,8 @@
     }
 
     // STRICT ADMIN CHECK
-    const userRole = data.user?.user_metadata?.role
+    // app_metadata can only be set by the server (service role); user_metadata can be edited by any user.
+    const userRole = data.user?.app_metadata?.role
 
     if (userRole !== 'admin') {
       await supabase.auth.signOut()
