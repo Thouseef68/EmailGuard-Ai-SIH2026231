@@ -47,6 +47,7 @@ _EXTRA_ESP = {
     "customer.io", "customeriomail.com", "resend.com", "resend.dev",
     "postmarkapp.com", "mailjet.com", "klaviyomail.com", "klaviyo.com",
     "mcsv.net", "rs6.net", "createsend.com", "sendpulse.com", "mlsend.com",
+    "onelink.me",   # AppsFlyer OneLink: app deep-link provider used by banks (e.g. Kotak)
 }
 
 SHORTENERS = {
@@ -575,7 +576,13 @@ def build(parsed, eml_bytes: bytes, report: dict, body_chars: int = 1500, full_u
         add("HIGH" if (brand_mismatch or subject_mismatch) else "MEDIUM",
             f"Link domain(s) embed a brand name but are not that brand's own domain: {names}.")
     if siblings:
-        add("LOW", f"Link domain(s) {', '.join(sorted(set(siblings))[:3])} share the sender's brand name but use a different TLD (common for real brands, but also a look-alike tactic).")
+        if bankin_root:
+            # Sender is in the RBI-restricted .bank.in namespace with passing authentication, so the
+            # bank's older .com/.in domains are expected; this is context, not a warning.
+            add("INFO", f"Link domain(s) {', '.join(sorted(set(siblings))[:3])} use the same brand name as the verified "
+                        f".bank.in sender '{bankin_root}'. Banks commonly keep their older domains alongside .bank.in.")
+        else:
+            add("LOW", f"Link domain(s) {', '.join(sorted(set(siblings))[:3])} share the sender's brand name but use a different TLD (common for real brands, but also a look-alike tactic).")
     if unrelated:
         u = sorted(set(unrelated))
         suspicious_context = (brand_mismatch or from_is_freemail or risky_sender_tld

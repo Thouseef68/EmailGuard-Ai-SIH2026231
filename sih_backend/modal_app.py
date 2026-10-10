@@ -45,6 +45,7 @@ image = (
     .pip_install(
         "huggingface_hub",
         "openai>=1.40.0",   # NVIDIA NIM LLM analyst (OpenAI-compatible client)
+        "pikepdf",          # PDF attachment scanner (encryption / structure checks)
     )
     .workdir("/app")
     .add_local_dir(

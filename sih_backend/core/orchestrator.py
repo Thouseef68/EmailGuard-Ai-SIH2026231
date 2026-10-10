@@ -34,6 +34,26 @@ def load_all_models():
     text_structural.load()
 
 
+# A credential flag must mean the email ASKS the reader to hand one over.
+# Merely mentioning "password" (e.g. "your statement PDF is password protected")
+# or a bank's standard warning ("never share your OTP") is not a request.
+_CRED_ASK = re.compile(
+    r"\b(enter|share|send|provide|reply with|confirm|verify|update|submit|give|tell|type)\b"
+    r"[^.\n]{0,60}?\b(pin|otp|password|passcode|cvv)\b",
+    re.I,
+)
+_NEGATION = re.compile(r"\b(do not|don't|dont|never|not)\b[^.\n]{0,25}$", re.I)
+
+
+def _asks_for_credentials(text: str) -> bool:
+    text = text or ""
+    for m in _CRED_ASK.finditer(text):
+        if _NEGATION.search(text[max(0, m.start() - 30):m.start()]):
+            continue            # "do not share your OTP" is a warning, not a request
+        return True
+    return False
+
+
 def _build_flags(parsed: ParsedEmail) -> list:
     flags = []
 
@@ -50,7 +70,7 @@ def _build_flags(parsed: ParsedEmail) -> list:
         flags.append("Return-Path domain differs from From domain")
 
     txt_lower = parsed.body_text.lower()
-    if re.search(r"\b(pin|otp|password)\b", txt_lower):
+    if _asks_for_credentials(parsed.body_text):
         flags.append("Requests sensitive credentials (PIN/OTP/password)")
     if any(w in txt_lower for w in ["immediately", "within 24", "suspend", "expire"]):
         flags.append("Uses urgency/time-pressure language")
