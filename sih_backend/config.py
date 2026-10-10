@@ -28,12 +28,12 @@ DEBERTA_SCALER_PATH = os.path.join(DEBERTA_MODEL_DIR, "behavior_feature_scaler.j
 
 XGB_MODEL_PATH = os.path.join(
     MODELS_DIR,
-    "xgboost_phishing_v3.json"
+    "xgboost_v4_clean.json"
 )
 
 XGB_FEATURES_PATH = os.path.join(
     MODELS_DIR,
-    "xgboost_feature_cols_v3.json"
+    "xgboost_v4_clean_feature_cols.json"
 )
 
 FUSION_CONFIG_PATH = os.path.join(MODELS_DIR, "fusion_config.json")
@@ -248,3 +248,14 @@ EDUCATION_DOMAIN_SUFFIXES = {
 
 # Backward compatibility for existing layers.
 TRUSTED_DOMAINS = TRUSTED_BRAND_DOMAINS
+
+
+# ─── APPEND THIS BLOCK TO THE BOTTOM OF sih_backend/config.py ───────────────
+# LLM analyst (Tier 2) — runs on EVERY email. Key comes from the Modal secret,
+# never from source code.
+LLM_API_KEY    = os.environ.get("NVIDIA_API_KEY", "")
+LLM_BASE_URL   = os.environ.get("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
+LLM_MODEL      = os.environ.get("LLM_MODEL", "meta/llama-3.2-11b-vision-instruct")
+LLM_TIMEOUT_S  = float(os.environ.get("LLM_TIMEOUT_S", "25"))
+LLM_MAX_RETRIES = int(os.environ.get("LLM_MAX_RETRIES", "1"))
+LLM_BODY_CHARS = int(os.environ.get("LLM_BODY_CHARS", "1500"))

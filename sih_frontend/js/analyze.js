@@ -4,18 +4,17 @@
 let selectedFile = null;
 
 const ANALYSIS_STEPS = [
-    { label: "Parsing email structure",           pct: 10 },
-    { label: "Running DeBERTa V12 (AI model)",    pct: 25 },
-    { label: "Running XGBoost V3 (structural)",   pct: 40 },
-    { label: "Fusion Gate decision",              pct: 50 },
-    { label: "Forensics — SPF/DKIM/DMARC/WHOIS", pct: 60 },
-    { label: "GeoIP origin lookup",               pct: 68 },
-    { label: "SHAP explainability",               pct: 74 },
-    { label: "Zero-shot intent classification",   pct: 80 },
-    { label: "Vision — OCR + QR + Logo",          pct: 85 },
-    { label: "Attachment scan — PDF + Office",    pct: 90 },
-    { label: "SMTP chain traversal + FCrDNS",     pct: 95 },
-    { label: "Anchoring on Sepolia blockchain",   pct: 99 },
+    { label: "Parsing email structure",                       pct: 8  },
+    { label: "Local AI models (DeBERTa V12 + XGBoost V3)",    pct: 20 },
+    { label: "Forensics — SPF/DKIM/DMARC/WHOIS/URLs",         pct: 34 },
+    { label: "GeoIP origin lookup",                           pct: 44 },
+    { label: "SHAP explainability",                           pct: 51 },
+    { label: "Zero-shot intent classification",               pct: 58 },
+    { label: "Vision — OCR + QR + Logo",                      pct: 65 },
+    { label: "Attachment scan — PDF + Office",                pct: 72 },
+    { label: "SMTP chain traversal + FCrDNS",                 pct: 78 },
+    { label: "AI analyst reviewing all evidence",             pct: 90 },
+    { label: "Anchoring on Sepolia blockchain",               pct: 97 },
 ];
 
 // ── Drag and drop handlers ────────────────────────────────────────────────

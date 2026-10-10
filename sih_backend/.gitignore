@@ -39,3 +39,8 @@ sih_phase4_real_100_eml/
 *_results.json
 batch_test_results.json
 xgb_root_cause_diagnostic/
+
+gmail_mode_b/secrets/
+gmail_mode_b/mode_b_log.jsonl
+dossier_cache/
+emails_folder/

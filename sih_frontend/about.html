@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>About — EmailGuard AI</title>
+    <meta name="description" content="EmailGuard AI is an early-stage email security company founded by Thouseef F in Bengaluru, India."/>
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico"/>
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/custom.css"/>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans">
+
+<!-- ── NAVBAR ─────────────────────────────────────────────────────────── -->
+<nav class="fixed top-0 w-full z-50 bg-slate-950/90 backdrop-blur border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <!-- Logo -->
+        <a href="index.html" class="flex items-center gap-3">
+            <span class="w-10 h-10 bg-white rounded-lg flex items-center justify-center overflow-hidden"><img src="assets/emailguard-icon-512.png" alt="EmailGuard AI logo" class="w-9 h-9 object-contain"/></span>
+            <span class="text-xl font-bold text-white">EmailGuard <span class="text-indigo-400">AI</span></span>
+        </a>
+
+        <!-- Nav links -->
+        <div class="hidden md:flex items-center gap-8 text-sm text-slate-400">
+            <a href="guide.html"       class="hover:text-white transition">How It Works</a>
+            <a href="about.html"       class="hover:text-white transition">About</a>
+            <a href="terms.html"       class="hover:text-white transition">Terms</a>
+            <a href="cyber-apply.html" class="hover:text-white transition">Cyber Access</a>
+            <a href="org-login.html"   class="hover:text-cyan-400 transition">Cyber Professional Portal</a>
+        </div>
+
+        <!-- Guest buttons -->
+        <div id="guest-nav" class="flex items-center gap-3">
+            <a href="login.html"  class="text-sm text-slate-300 hover:text-white transition">Login</a>
+            <a href="signup.html" class="text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg transition">Sign Up</a>
+        </div>
+
+        <!-- Auth buttons (shown when logged in) -->
+        <div id="auth-nav" class="hidden items-center gap-4">
+            <a href="analyze.html"   class="text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg transition">Analyze Email</a>
+            <a href="dashboard.html" class="text-sm text-slate-300 hover:text-white transition">Dashboard</a>
+            <div class="text-right">
+                <p id="user-email" class="text-xs text-slate-400"></p>
+                <p id="user-role"  class="text-xs text-indigo-400 font-medium"></p>
+            </div>
+            <button onclick="Auth.logout()" class="text-xs text-slate-500 hover:text-red-400 transition">Logout</button>
+        </div>
+    </div>
+</nav>
+
+<!-- ── INTRO ──────────────────────────────────────────────────────────── -->
+<section class="pt-36 pb-16 px-6">
+    <div class="max-w-4xl mx-auto grid md:grid-cols-5 gap-10 items-center">
+        <div class="md:col-span-3">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-6">
+                Email attacks have stopped looking like attacks.
+            </h1>
+            <p class="text-lg text-slate-400 leading-relaxed">
+                Today's phishing is polite, well written and often sent from a domain that passes every
+                authentication check. EmailGuard AI exists to look past the surface of a message and tell
+                you, in plain language, whether it is safe, and why.
+            </p>
+        </div>
+        <div class="md:col-span-2 flex justify-center">
+            <div class="bg-white rounded-3xl p-6 shadow-lg shadow-indigo-500/10">
+                <img src="assets/emailguard-logo-512.png" alt="EmailGuard AI — Detect, Analyze, Protect" class="w-56 h-56 object-contain"/>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── WHAT WE DO ─────────────────────────────────────────────────────── -->
+<section class="py-16 px-6 bg-slate-900/50">
+    <div class="max-w-4xl mx-auto">
+        <h2 class="text-2xl font-bold text-white mb-8">What we are building</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800">
+                <h3 class="text-white font-semibold mb-2">Verdicts that explain themselves</h3>
+                <p class="text-slate-400 text-sm leading-relaxed">Every email is checked by forensic layers and local AI models, then reviewed by an LLM analyst that states its reasons and answers each serious finding.</p>
+            </div>
+            <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800">
+                <h3 class="text-white font-semibold mb-2">Evidence you can hand over</h3>
+                <p class="text-slate-400 text-sm leading-relaxed">Each analysis produces a structured forensic report with indicators, origin trace and methodology, written to be read by an investigator.</p>
+            </div>
+            <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800">
+                <h3 class="text-white font-semibold mb-2">Reports that show tampering</h3>
+                <p class="text-slate-400 text-sm leading-relaxed">The report's SHA-256 hash is anchored on a blockchain, so any later change to the stored report can be detected.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- ── FOUNDER · SOFT FLOATING GLASSMORPHISM ──────────────────────── -->
+<style>
+    #founder {
+        isolation: isolate;
+        background:
+            radial-gradient(ellipse at 12% 25%, rgba(99,102,241,.055), transparent 42%),
+            radial-gradient(ellipse at 90% 70%, rgba(6,182,212,.045), transparent 38%);
+    }
+
+    #founder .founder-glass {
+        background: rgba(13, 15, 31, .76);
+        border: 1px solid rgba(255,255,255,.065);
+        box-shadow: 0 16px 45px rgba(0,0,0,.20);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        transition: border-color .25s ease, background .25s ease;
+    }
+
+    #founder .founder-glass:hover {
+        border-color: rgba(148,163,184,.13);
+        background: rgba(15,17,34,.80);
+        box-shadow: 0 16px 45px rgba(0,0,0,.22);
+    }
+
+    #founder .founder-orb {
+        position: absolute;
+        border-radius: 9999px;
+        filter: blur(80px);
+        opacity: .38;
+        pointer-events: none;
+        animation: founderFloat 10s ease-in-out infinite;
+    }
+
+    #founder .founder-orb-two {
+        animation-delay: -5s;
+    }
+
+    #founder .founder-avatar {
+        background: linear-gradient(145deg,
+            rgba(129,140,248,.13), rgba(34,211,238,.035));
+        box-shadow: 0 0 25px rgba(99,102,241,.07),
+                    inset 0 0 20px rgba(34,211,238,.025);
+        animation: avatarFloat 6s ease-in-out infinite;
+    }
+
+    #founder .founder-gradient {
+        background: linear-gradient(100deg,#b5a0e8 0%,#9299df 48%,#75c6d7 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    #founder .founder-feature {
+        background: rgba(255,255,255,.018);
+        border: 1px solid rgba(255,255,255,.055);
+        transition: transform .22s ease, background .22s ease,
+                    border-color .22s ease;
+    }
+
+    #founder .founder-feature:hover {
+        transform: translateY(-2px);
+        background: rgba(255,255,255,.028);
+        border-color: rgba(103,232,249,.14);
+    }
+
+    #founder .founder-dot {
+        animation: founderPulse 3s ease-in-out infinite;
+    }
+
+    /* Smaller, softer outer frame */
+    #founder .founder-frame {
+        padding: 1px;
+        border-radius: 1.5rem;
+        background: linear-gradient(135deg,
+            rgba(129,140,248,.22),
+            rgba(255,255,255,.045),
+            rgba(34,211,238,.17));
+        transition: background .25s ease;
+    }
+
+    #founder .founder-frame:hover {
+        background: linear-gradient(135deg,
+            rgba(129,140,248,.28),
+            rgba(255,255,255,.055),
+            rgba(34,211,238,.22));
+    }
+
+    @keyframes founderFloat {
+        0%,100% { transform: translate3d(0,0,0); }
+        50% { transform: translate3d(8px,-10px,0); }
+    }
+
+    @keyframes avatarFloat {
+        0%,100% { transform: translateY(0); }
+        50% { transform: translateY(-4px); }
+    }
+
+    @keyframes founderPulse {
+        0%,100% { opacity: .85; }
+        50% { opacity: .5; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        #founder *,
+        #founder *::before,
+        #founder *::after {
+            animation: none !important;
+            transition: none !important;
+        }
+    }
+
+    @media (max-width: 639px) {
+        #founder .founder-content {
+            padding: 1.25rem;
+        }
+    }
+</style>
+
+<section id="founder" class="relative overflow-hidden px-4 py-16 sm:px-6 sm:py-20">
+
+    <!-- Subtle floating lights -->
+    <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div class="founder-orb left-[5%] top-24 h-48 w-48 bg-indigo-600/15"></div>
+        <div class="founder-orb founder-orb-two right-[5%] top-1/3 h-56 w-56 bg-cyan-500/10"></div>
+        <div class="founder-orb bottom-0 left-1/2 h-40 w-40 bg-violet-600/10"></div>
+    </div>
+
+    <!-- Subtle background grid -->
+    <div class="pointer-events-none absolute inset-0 opacity-[.022]"
+         aria-hidden="true"
+         style="background-image:linear-gradient(rgba(148,163,184,.8) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.8) 1px,transparent 1px);background-size:36px 36px;mask-image:linear-gradient(to bottom,black,transparent 95%);">
+    </div>
+
+    <div class="relative mx-auto max-w-5xl">
+
+        <!-- Heading -->
+        <div class="mb-9 text-center sm:mb-10">
+            <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-400/15 bg-cyan-400/[.035] px-4 py-2 text-[10px] font-semibold uppercase tracking-[.22em] text-cyan-200/90 sm:text-xs">
+                <span class="founder-dot h-1.5 w-1.5 rounded-full bg-cyan-300"></span>
+                The person behind the product
+            </div>
+
+            <h2 class="text-3xl font-bold tracking-tight text-slate-100 sm:text-5xl">
+                Built with
+                <span class="founder-gradient">purpose.</span>
+            </h2>
+
+            <p class="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-400">
+                Engineering transparent email security at the intersection of
+                artificial intelligence, machine learning and digital forensics.
+            </p>
+        </div>
+
+        <!-- Compact glass frame -->
+        <div class="founder-frame">
+
+            <div class="founder-glass founder-content relative overflow-hidden rounded-[calc(1.5rem-1px)] p-5 sm:p-7 lg:p-8">
+
+                <!-- Soft corner highlight -->
+                <div class="pointer-events-none absolute right-0 top-0 h-52 w-52 rounded-full bg-indigo-500/[.035] blur-3xl"></div>
+
+                <div class="relative grid gap-8 lg:grid-cols-[.72fr_1.55fr] lg:gap-10">
+
+                    <!-- Founder identity -->
+                    <div class="flex flex-col items-center text-center lg:items-start lg:text-left">
+
+                        <div class="relative mb-5">
+                            <div class="absolute -inset-2 rounded-[1.5rem] border border-dashed border-indigo-400/15"></div>
+
+                            <div class="founder-avatar relative flex h-28 w-28 items-center justify-center rounded-2xl border border-cyan-300/15 sm:h-36 sm:w-36">
+                                <div class="absolute inset-2 rounded-xl border border-white/[.045]"></div>
+
+                                <span class="founder-gradient text-5xl font-black tracking-[-.08em] sm:text-6xl">TF</span>
+
+                                <span class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-300/15 bg-slate-950/95 text-cyan-200">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="h-4 w-4" aria-hidden="true">
+                                        <path d="M12 3 20 6v5c0 5-3.4 8.1-8 10-4.6-1.9-8-5-8-10V6z"/>
+                                        <path d="m9 12 2 2 4-4"/>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+
+                        <span class="text-[10px] font-semibold uppercase tracking-[.25em] text-cyan-200/90">
+                            Founder signature
+                        </span>
+
+                        <h3 class="mt-2 text-2xl font-bold tracking-tight text-slate-100">
+                            Thouseef F
+                        </h3>
+
+                        <p class="mt-1.5 text-sm text-slate-400">Founder, EmailGuard AI</p>
+
+                        <div class="mt-4 inline-flex items-center gap-2 rounded-lg border border-white/[.07] bg-white/[.018] px-3 py-2.5 text-xs text-slate-300">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4 text-indigo-300" aria-hidden="true">
+                                <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21z"/>
+                                <path d="M4 5.5V21M8 7h8M8 11h6"/>
+                            </svg>
+                            BCA Student · Bengaluru, India
+                        </div>
+
+                        <!-- Compact status card -->
+                        <div class="founder-glass mt-5 w-full rounded-xl p-3.5 text-left">
+                            <div class="flex items-center gap-3">
+                                <span class="founder-dot h-2 w-2 shrink-0 rounded-full bg-cyan-300"></span>
+                                <div>
+                                    <p class="text-xs font-semibold text-slate-200">EmailGuard AI</p>
+                                    <p class="mt-1 text-[11px] text-slate-400">AI-powered email security</p>
+                                </div>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="ml-auto h-5 w-5 text-cyan-200/80" aria-hidden="true">
+                                    <path d="M3 7 12 13l9-6"/>
+                                    <rect x="3" y="5" width="18" height="14" rx="2"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Founder story -->
+                    <div class="space-y-5">
+
+                        <div>
+                            <p class="mb-2 text-[10px] font-semibold uppercase tracking-[.2em] text-indigo-300/90">
+                                The vision
+                            </p>
+
+                            <h4 class="text-xl font-bold leading-snug text-slate-100 sm:text-2xl">
+                                Security should explain
+                                <span class="founder-gradient">why.</span>
+                            </h4>
+                        </div>
+
+                        <p class="text-sm leading-7 text-slate-300">
+                            I'm Thouseef, a Bachelor of Computer Applications (BCA)
+                            student at Dayananda Sagar University in Bengaluru,
+                            building <span class="font-semibold text-slate-100">EmailGuard AI</span> —
+                            an AI-powered approach to detecting phishing, suspicious
+                            emails and digital threats.
+                        </p>
+
+                        <p class="text-sm leading-7 text-slate-300">
+                            My work brings together machine learning, email threat
+                            analysis and digital forensics to help people understand
+                            not only <span class="text-indigo-200">what a system detects</span>,
+                            but also <span class="text-cyan-200">why it reaches a verdict</span>.
+                        </p>
+
+                        <p class="text-sm leading-7 text-slate-300">
+                            I'm developing the detection pipeline, analysis workflow,
+                            forensic reports and web platform with a focus on clarity,
+                            evidence and honest communication of uncertainty.
+                        </p>
+
+                        <!-- Feature tiles -->
+                        <div class="grid gap-2.5 pt-1 sm:grid-cols-3">
+
+                            <div class="founder-feature rounded-xl p-3">
+                                <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-indigo-400/15 bg-indigo-400/[.06] text-indigo-200">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="h-5 w-5" aria-hidden="true">
+                                        <path d="M12 3 20 6v5c0 5-3.4 8.1-8 10-4.6-1.9-8-5-8-10V6z"/>
+                                        <path d="m9 12 2 2 4-4"/>
+                                    </svg>
+                                </div>
+                                <p class="text-xs font-semibold text-slate-200">Security first</p>
+                                <p class="mt-1.5 text-[11px] leading-5 text-slate-400">Evidence-led analysis</p>
+                            </div>
+
+                            <div class="founder-feature rounded-xl p-3">
+                                <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-cyan-400/15 bg-cyan-400/[.05] text-cyan-200">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="h-5 w-5" aria-hidden="true">
+                                        <circle cx="12" cy="12" r="9"/>
+                                        <path d="M8 12h8M12 8v8"/>
+                                    </svg>
+                                </div>
+                                <p class="text-xs font-semibold text-slate-200">Explainable AI</p>
+                                <p class="mt-1.5 text-[11px] leading-5 text-slate-400">Understand the verdict</p>
+                            </div>
+
+                            <div class="founder-feature rounded-xl p-3">
+                                <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-purple-400/15 bg-purple-400/[.05] text-purple-200">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="h-5 w-5" aria-hidden="true">
+                                        <path d="M5 4h14v16H5z"/>
+                                        <path d="M8 8h8M8 12h8M8 16h5"/>
+                                    </svg>
+                                </div>
+                                <p class="text-xs font-semibold text-slate-200">Digital forensics</p>
+                                <p class="mt-1.5 text-[11px] leading-5 text-slate-400">Structured findings</p>
+                            </div>
+                        </div>
+
+                        <!-- SIH project origin -->
+                        <div class="founder-glass rounded-xl p-3.5 sm:p-4">
+                            <div class="flex items-start gap-3">
+                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-amber-300/15 bg-amber-300/[.04] text-amber-200">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-5 w-5" aria-hidden="true">
+                                        <path d="m12 3 2.5 5.2 5.7.8-4.1 4 .9 5.7-5-2.7-5 2.7.9-5.7-4.1-4 5.7-.8z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-200">Where it began</p>
+                                    <p class="mt-1 text-xs leading-5 text-slate-400">
+                                        EmailGuard AI originated from work on a
+                                        Smart India Hackathon 2026 project in the
+                                        Cybersecurity &amp; Blockchain track.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact buttons -->
+                        <div class="flex flex-wrap gap-3 pt-1">
+                            <a href="mailto:founder@emailguardai.me"
+                               class="inline-flex items-center gap-2 rounded-lg border border-cyan-300/15 bg-cyan-300/[.07] px-4 py-2.5 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/[.11]">
+                                Contact the founder <span aria-hidden="true">↗</span>
+                            </a>
+
+                            <a href="https://www.emailguardai.me/"
+                               class="inline-flex items-center gap-2 rounded-lg border border-white/[.08] bg-white/[.02] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:border-white/[.14] hover:bg-white/[.04]">
+                                Explore EmailGuard AI
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Closing statement -->
+                <div class="relative mt-8 border-t border-white/[.06] pt-6 text-center">
+                    <p class="mx-auto max-w-2xl text-sm italic leading-7 text-slate-400 sm:text-base">
+                        “Email security should do more than flag a threat.
+                        <span class="founder-gradient font-semibold">It should help you understand it.</span>”
+                    </p>
+
+                    <p class="mt-3 text-[9px] font-semibold uppercase tracking-[.25em] text-slate-500">
+                        Detect · Analyze · Protect
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- ── CONTACT ────────────────────────────────────────────────────────── -->
+<section class="py-20 px-6 bg-slate-900/50">
+    <div class="max-w-4xl mx-auto">
+        <h2 class="text-2xl font-bold text-white mb-8">Contact</h2>
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800">
+                <p class="text-slate-400 text-sm mb-1">Company</p>
+                <p class="text-white font-semibold mb-5">EmailGuard AI</p>
+                <p class="text-slate-400 text-sm mb-1">Email</p>
+                <a href="mailto:founder@emailguardai.me" class="text-indigo-400 hover:text-indigo-300 font-medium transition">founder@emailguardai.me</a>
+                <p class="text-slate-400 text-sm mt-5 mb-1">Based in</p>
+                <p class="text-white">Bengaluru, India</p>
+            </div>
+            <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800">
+                <p class="text-white font-semibold mb-3">Write to us about</p>
+                <ul class="space-y-2 text-sm text-slate-400">
+                    <li>Partnerships, pilots and organisation access</li>
+                    <li>Cyber Professional access requests</li>
+                    <li>Reporting a security issue or a wrong verdict</li>
+                    <li>Press and investor enquiries</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
+<footer class="border-t border-slate-800 py-10 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <span class="w-9 h-9 bg-white rounded-lg flex items-center justify-center overflow-hidden"><img src="assets/emailguard-icon-512.png" alt="EmailGuard AI logo" class="w-8 h-8 object-contain"/></span>
+            <span class="text-slate-400 text-sm">EmailGuard AI — Detect · Analyze · Protect</span>
+        </div>
+        <div class="flex gap-6 text-sm text-slate-500">
+            <a href="guide.html"       class="hover:text-white transition">Guide</a>
+            <a href="about.html"       class="hover:text-white transition">About</a>
+            <a href="mailto:founder@emailguardai.me" class="hover:text-white transition">Contact</a>
+            <a href="terms.html"       class="hover:text-white transition">Terms</a>
+            <a href="cyber-apply.html" class="hover:text-white transition">Cyber Access</a>
+            <a href="org-login.html"   class="hover:text-cyan-400 transition">Cyber Professional Portal</a>
+            <a href="admin-login.html" class="hover:text-red-400 transition">Admin</a>
+        </div>
+        <p class="text-slate-600 text-xs">© 2026 EmailGuard AI. All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        Auth.updateNavbar();
+    });
+</script>
+</body>
+</html>
