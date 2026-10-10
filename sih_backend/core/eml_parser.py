@@ -33,6 +33,8 @@ class ParsedEmail:
     dkim: str = "none"
     dmarc: str = "none"
     body_text: str = ""
+    body_plain: str = ""      # text/plain parts only
+    body_html: str = ""       # raw text/html parts (links and tags intact)
     has_html: bool = False
     has_plain: bool = False
     is_multipart: bool = False
@@ -102,6 +104,8 @@ def parse_eml(eml_bytes: bytes) -> ParsedEmail:
     parsed.is_multipart = msg.is_multipart()
 
     body_parts = []
+    plain_parts = []
+    html_parts = []
     attachment_count = 0
     attachment_filenames = []
     image_parts = []
@@ -134,6 +138,7 @@ def parse_eml(eml_bytes: bytes) -> ParsedEmail:
                     charset = part.get_content_charset() or "utf-8"
                     plain_content = payload_bytes.decode(charset, errors="ignore")
                     body_parts.append(plain_content)
+                    plain_parts.append(plain_content)
                 except Exception:
                     pass
             elif content_type == "text/html":
@@ -142,6 +147,7 @@ def parse_eml(eml_bytes: bytes) -> ParsedEmail:
                     payload_bytes = part.get_payload(decode=True)
                     charset = part.get_content_charset() or "utf-8"
                     html_content = payload_bytes.decode(charset, errors="ignore")
+                    html_parts.append(html_content)
                     
                     # Tag stripping executes smoothly over fully-decoded text lines
                     text_only = re.sub(r"<[^>]+>", " ", html_content)
@@ -159,12 +165,16 @@ def parse_eml(eml_bytes: bytes) -> ParsedEmail:
             
         if content_type == "text/html":
             has_html = True
+            html_parts.append(content)
             body_parts.append(re.sub(r"<[^>]+>", " ", content))
         else:
             has_plain = True
+            plain_parts.append(content)
             body_parts.append(content)
 
     parsed.body_text = "\n".join(body_parts).strip()
+    parsed.body_plain = "\n".join(plain_parts).strip()
+    parsed.body_html = "\n".join(html_parts).strip()
     parsed.has_html = has_html
     parsed.has_plain = has_plain
     parsed.attachment_count = attachment_count

@@ -145,7 +145,8 @@ def get_saved_analysis(analysis_id: str):
 # ── Download the formal text report ───────────────────────────────────────────
 
 _REPORT_KEYS = ("report", "report_json", "full_report", "analysis", "result", "data")
-_META_KEYS   = ("analysis_id", "id", "report_hash", "ipfs_cid", "tx_hash", "chain_id", "created_at")
+_META_KEYS   = ("analysis_id", "id", "report_hash", "ipfs_cid", "tx_hash", "chain_id", "created_at",
+                "blockchain_anchored", "anchor_error")
 
 
 def _report_from_row(row: dict) -> dict:

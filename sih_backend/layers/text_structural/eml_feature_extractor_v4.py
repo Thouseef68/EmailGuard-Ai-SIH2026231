@@ -68,8 +68,11 @@ def extract_v4_features(parsed: ParsedEmail) -> dict:
     # ── Build a single text blob (header block + decoded body)
     # eml_parser gives us: subject, from_addr, body_text, body_html, raw_headers
     subject_raw = parsed.subject or ''
-    body_plain  = parsed.body_text or ''
-    body_html   = parsed.body_html or ''
+    # Real text/plain part only; older parsers without body_plain fall back to body_text.
+    body_plain  = getattr(parsed, 'body_plain', None)
+    if body_plain is None:
+        body_plain = parsed.body_text or ''
+    body_html   = getattr(parsed, 'body_html', '') or ''
 
     # Combine: use plain text body first, fall back to HTML
     body_combined = body_plain if body_plain.strip() else body_html
@@ -120,7 +123,11 @@ def extract_v4_features(parsed: ParsedEmail) -> dict:
                   len(alpha_body)) if alpha_body else 0.0
 
     # ── Header signals  (use raw_headers from parser — more reliable than regex)
-    raw_headers_l = (parsed.raw_headers or '').lower()
+    rh = parsed.raw_headers
+    if isinstance(rh, dict):                       # current ParsedEmail: {header: value}
+        raw_headers_l = ' '.join(f'{k}: {v}' for k, v in rh.items()).lower()
+    else:
+        raw_headers_l = str(rh or '').lower()
     has_noreply   = int('no-reply' in raw_headers_l or
                         'noreply'  in raw_headers_l or
                         'donotreply' in raw_headers_l or

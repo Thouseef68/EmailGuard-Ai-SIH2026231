@@ -8,10 +8,24 @@ import ipaddress
 from typing import List, Dict, Any, Optional
 from email import message_from_bytes
 
+# A bare IPv4 must stand alone: not glued to letters/digits or to a longer dotted string
+# (otherwise "2026.10.02.10.01.48" in a message ID yields the fake IP 10.02.10.01).
 _IP_RE = re.compile(
     r"\[(\d{1,3}(?:\.\d{1,3}){3})\]"
-    r"|(?<!\d)(\d{1,3}(?:\.\d{1,3}){3})(?!\d)"
+    r"|(?<![\w.])(\d{1,3}(?:\.\d{1,3}){3})(?![\w.])"
 )
+
+
+def _valid_ipv4(s: str) -> bool:
+    """Real IPv4 only: each octet 0-255 and no leading zeros (rejects dates like 09.23.02.43)."""
+    try:
+        octets = s.split(".")
+        if len(octets) != 4 or any(o != str(int(o)) for o in octets):
+            return False
+        ipaddress.IPv4Address(s)
+        return True
+    except ValueError:
+        return False
 
 _PRIVATE_RANGES = [
     ipaddress.ip_network("10.0.0.0/8"),
@@ -80,7 +94,7 @@ def _fcrdns(ip_str: str) -> Dict[str, Any]:
 
 def _extract_ips_from_received(header_value: str) -> List[str]:
     hits = _IP_RE.findall(header_value)
-    ips = [bracketed or bare for bracketed, bare in hits if bracketed or bare]
+    ips = [bracketed or bare for bracketed, bare in hits if (bracketed or bare) and _valid_ipv4(bracketed or bare)]
     seen = set()
     unique = []
     for ip in ips:

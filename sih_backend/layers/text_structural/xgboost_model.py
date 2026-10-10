@@ -1,25 +1,10 @@
 """
-layers/text_structural/xgboost_model.py — XGBoost V3 structural classifier
+layers/text_structural/xgboost_model.py — XGBoost V4-Clean structural classifier
 
-45-feature schema (42 original + 3 ratio features added in V3):
-    email_length, header_length, body_length, subject_length,
-    subject_word_count, subject_exclamation_count, subject_question_count,
-    subject_uppercase_ratio, from_present, to_present, cc_present,
-    bcc_present, reply_to_present, date_present, message_id_present,
-    from_count, to_count, cc_count, bcc_count, received_count,
-    return_path_present, authentication_results_present,
-    dkim_signature_present, spf_present, mime_version_present,
-    content_type_present, multipart, attachment_count, body_url_count,
-    unique_domain_count, http_url_count, https_url_count, html_present,
-    plain_text_present, body_exclamation_count, body_question_count,
-    body_uppercase_ratio, urgent_word_count, money_word_count,
-    credential_word_count, login_word_count, verify_word_count,
-    https_ratio, url_per_kb, dom_per_url
-
-V3 changes:
-    - credential_word_count: removed "login","account","username" (too broad)
-    - 3 new ratio features: https_ratio, url_per_kb, dom_per_url
-    - uses extract_xgb_features() from eml_parser — no duplicate logic
+20 features, produced by eml_feature_extractor_v4.extract_v4_features().
+The feature names come from xgboost_v4_clean_feature_cols.json and must all be
+produced by that extractor. If they are not, predict() raises instead of
+quietly feeding zeros to the model (which is what hid the V3 -> V4 mismatch).
 """
 
 import json
@@ -27,7 +12,8 @@ import numpy as np
 import xgboost as xgb
 
 import config
-from core.eml_parser import ParsedEmail, extract_xgb_features
+from core.eml_parser import ParsedEmail
+from .eml_feature_extractor_v4 import extract_v4_features, FEATURE_COLS as V4_COLS
 
 
 class XGBoostEngine:
@@ -36,6 +22,7 @@ class XGBoostEngine:
     def __init__(self):
         self.model        = None
         self.feature_cols = None
+        self.schema_error = None
         self._loaded      = False
 
     def load(self):
@@ -49,15 +36,22 @@ class XGBoostEngine:
             feat_data = json.load(f)
         self.feature_cols = feat_data["features"] if isinstance(feat_data, dict) else feat_data
 
+        missing = [c for c in self.feature_cols if c not in V4_COLS]
+        if missing:
+            self.schema_error = f"model expects features the V4 extractor does not produce: {missing}"
+            print(f"[xgboost] SCHEMA MISMATCH - {self.schema_error}")
+
         self._loaded = True
         print(f"[xgboost] ready — {len(self.feature_cols)} features.")
 
-    def predict(self, parsed: ParsedEmail, raw_str: str) -> float:
-        """Returns phishing probability (0–1)."""
+    def predict(self, parsed: ParsedEmail, raw_str: str = "") -> float:
+        """Returns phishing probability (0-1). raw_str is kept for call compatibility."""
         if not self._loaded:
             self.load()
+        if self.schema_error:
+            raise RuntimeError(self.schema_error)
 
-        feat = extract_xgb_features(parsed, raw_str)
-        arr  = np.array([[feat.get(col, 0) for col in self.feature_cols]], dtype=float)
+        feat = extract_v4_features(parsed)
+        arr  = np.array([[feat[col] for col in self.feature_cols]], dtype=float)
         dmat = xgb.DMatrix(arr, feature_names=self.feature_cols)
         return float(self.model.predict(dmat)[0])

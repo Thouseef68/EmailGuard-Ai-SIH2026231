@@ -505,6 +505,10 @@ def build_text_report(report: dict, generated_at=None) -> str:
     L += _render(smtp, 2) if smtp else ["No SMTP chain data was available."]
     maps = _map_links(geoip, smtp)
     L += _h2("Map links")
+    L += _note("IP geolocation is approximate and shows where the sending mail server is registered, "
+               "not where the sender is. Errors of hundreds of kilometres, or the wrong country, are "
+               "common for hosting and email-delivery providers.")
+    L += [""]
     if maps:
         for m in maps:
             L += _wrap(m["label"], 0, "- ")
@@ -525,7 +529,7 @@ def build_text_report(report: dict, generated_at=None) -> str:
     L += _h1(11, "Indicator summary")
     domains = []
     for d in (parsed.get("from_domain"), str(parsed.get("reply_to") or "").split("@")[-1]):
-        if d and d not in domains:
+        if d and "." in str(d) and "REDACTED" not in str(d).upper() and _ascii(d) not in domains:
             domains.append(_ascii(d))
     L += _h2("Domains")
     L += [f"- {d}" for d in domains] or ["None."]
@@ -551,7 +555,17 @@ def build_text_report(report: dict, generated_at=None) -> str:
     chain_id = str(_find(r, ("chain_id",)) or os.environ.get("CHAIN_ID", "11155111"))
     chain_name, explorer = _CHAINS.get(chain_id, (f"Chain ID {chain_id}", ""))
     L += _kv("Analysis ID", analysis_id or "Not assigned")
-    L += _kv("Report SHA-256 hash", report_hash or "Not available (anchoring may still be in progress)")
+    anchor_error = _find(r, ("anchor_error",))
+    if tx_hash:
+        anchor_status = "Confirmed - the report hash is recorded on-chain."
+    elif anchor_error:
+        anchor_status = (f"FAILED - {_ascii(anchor_error)[:160]}. The report hash below is still "
+                         "valid for local verification.")
+    else:
+        anchor_status = ("PENDING - anchoring is still in progress. Download this report again in "
+                         "a minute to include the IPFS and transaction details.")
+    L += _kv("Anchor status", anchor_status)
+    L += _kv("Report SHA-256 hash", report_hash or "Not available")
     L += _kv("IPFS content ID", ipfs_cid or "Not available")
     if ipfs_cid:
         L += _kv("IPFS link", f"https://ipfs.io/ipfs/{ipfs_cid}")

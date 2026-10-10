@@ -11,7 +11,8 @@ import xgboost as xgb
 import pandas as pd
 
 import config
-from core.eml_parser import ParsedEmail, extract_xgb_features
+from core.eml_parser import ParsedEmail
+from layers.text_structural.eml_feature_extractor_v4 import extract_v4_features
 
 _model        = None
 _explainer    = None
@@ -48,8 +49,8 @@ def _load():
 def run(parsed: ParsedEmail, raw_str: str) -> dict:
     _load()
 
-    feat = extract_xgb_features(parsed, raw_str)
-    df   = pd.DataFrame([{c: feat.get(c, 0) for c in _feature_cols}])
+    feat = extract_v4_features(parsed)        # same V4 features the model is scored on
+    df   = pd.DataFrame([{c: feat[c] for c in _feature_cols}])   # KeyError on a schema mismatch, never silent zeros
 
     shap_values = _explainer(df)
     sv = shap_values.values[0]   # per-sample SHAP values
