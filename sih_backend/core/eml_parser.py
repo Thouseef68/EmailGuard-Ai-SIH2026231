@@ -126,7 +126,7 @@ def parse_eml(eml_bytes: bytes) -> ParsedEmail:
                     pass
                 continue
 
-            # FIX: Use byte-level decoding to clear transport encodings (Quoted-Printable/Base64)
+            # FIX: Pull raw bytes via get_payload(decode=True) to decrypt transport encryption sets cleanly
             if content_type == "text/plain":
                 has_plain = True
                 try:
@@ -143,7 +143,7 @@ def parse_eml(eml_bytes: bytes) -> ParsedEmail:
                     charset = part.get_content_charset() or "utf-8"
                     html_content = payload_bytes.decode(charset, errors="ignore")
                     
-                    # Run tag stripping safely on the clean, fully-decoded string
+                    # Tag stripping executes smoothly over fully-decoded text lines
                     text_only = re.sub(r"<[^>]+>", " ", html_content)
                     body_parts.append(text_only)
                 except Exception:
