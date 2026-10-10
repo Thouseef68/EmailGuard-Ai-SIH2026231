@@ -126,16 +126,24 @@ def parse_eml(eml_bytes: bytes) -> ParsedEmail:
                     pass
                 continue
 
+            # FIX: Use byte-level decoding to clear transport encodings (Quoted-Printable/Base64)
             if content_type == "text/plain":
                 has_plain = True
                 try:
-                    body_parts.append(part.get_content())
+                    payload_bytes = part.get_payload(decode=True)
+                    charset = part.get_content_charset() or "utf-8"
+                    plain_content = payload_bytes.decode(charset, errors="ignore")
+                    body_parts.append(plain_content)
                 except Exception:
                     pass
             elif content_type == "text/html":
                 has_html = True
                 try:
-                    html_content = part.get_content()
+                    payload_bytes = part.get_payload(decode=True)
+                    charset = part.get_content_charset() or "utf-8"
+                    html_content = payload_bytes.decode(charset, errors="ignore")
+                    
+                    # Run tag stripping safely on the clean, fully-decoded string
                     text_only = re.sub(r"<[^>]+>", " ", html_content)
                     body_parts.append(text_only)
                 except Exception:
@@ -143,9 +151,12 @@ def parse_eml(eml_bytes: bytes) -> ParsedEmail:
     else:
         content_type = msg.get_content_type()
         try:
-            content = msg.get_content()
+            payload_bytes = msg.get_payload(decode=True)
+            charset = msg.get_content_charset() or "utf-8"
+            content = payload_bytes.decode(charset, errors="ignore")
         except Exception:
             content = ""
+            
         if content_type == "text/html":
             has_html = True
             body_parts.append(re.sub(r"<[^>]+>", " ", content))
@@ -227,8 +238,4 @@ def extract_xgb_features(parsed: ParsedEmail, raw_str: str) -> dict:
         "credential_word_count":      sum(1 for w in _CRED   if w in fl),
         "login_word_count":           fl.count("login"),
         "verify_word_count":          fl.count("verif"),
-        # ── 3 ratio features (V3 new) ──────────────────────────────────
-        "https_ratio":                https / tu,
-        "url_per_kb":                 len(urls) / kb,
-        "dom_per_url":                len(doms) / tu,
     }
