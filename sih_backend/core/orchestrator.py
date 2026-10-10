@@ -3,6 +3,7 @@ core/orchestrator.py — runs every layer, merges into ONE report
 """
 
 import logging
+import re
 
 from core.eml_parser import parse_eml, ParsedEmail
 from layers import text_structural
@@ -24,7 +25,7 @@ from layers.forensics.smtp_traversal import analyze_smtp_chain
 from core.attachment_extractor import extract_attachments
 from layers.attachments.pdf_scan import scan_pdf_attachments
 from layers.attachments.office_macro_scan import scan_office_attachments
-from config import TRUSTED_BRAND_DOMAINS
+from layers.llm_analyst import run as llm_run
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,7 @@ def _build_flags(parsed: ParsedEmail) -> list:
         flags.append("Return-Path domain differs from From domain")
 
     txt_lower = parsed.body_text.lower()
-    if any(w in txt_lower for w in ["pin", "otp", "password"]):
+    if re.search(r"\b(pin|otp|password)\b", txt_lower):
         flags.append("Requests sensitive credentials (PIN/OTP/password)")
     if any(w in txt_lower for w in ["immediately", "within 24", "suspend", "expire"]):
         flags.append("Uses urgency/time-pressure language")
@@ -61,76 +62,6 @@ def _build_flags(parsed: ParsedEmail) -> list:
         flags.append(f"Contains {len(parsed.image_parts)} embedded image(s)")
 
     return flags
-
-# core/orchestrator.py — add this function
-
-
-
-def _is_trusted_sender(parsed: ParsedEmail) -> bool:
-    """
-    Trusted sender requires:
-    1. Actual brand domain match
-    2. SPF PASS
-    3. DKIM PASS
-    4. DMARC PASS
-
-    Mail infrastructure domains are NOT considered trusted brands.
-    """
-    domain = (parsed.from_domain or "").lower().strip()
-
-    if not domain:
-        return False
-
-    # Only actual brand domains count as trusted.
-    domain_trusted = any(
-        domain == td or domain.endswith("." + td)
-        for td in TRUSTED_BRAND_DOMAINS
-    )
-
-    if not domain_trusted:
-        return False
-
-    spf_ok = (parsed.spf or "").lower() == "pass"
-    dkim_ok = (parsed.dkim or "").lower() == "pass"
-    dmarc_ok = (parsed.dmarc or "").lower() == "pass"
-
-    return spf_ok and dkim_ok and dmarc_ok
-
-def _final_decision(report: dict, trusted_sender: bool) -> tuple[str, str]:
-    ts = report.get("text_structural", {})
-    fusion = ts.get("fusion", {})
-
-    ai_verdict = fusion.get("verdict", "UNKNOWN")
-    ai_probability = float(fusion.get("fused_probability", 0.0))
-
-    if trusted_sender:
-        if ai_probability >= 0.90:
-            return (
-                "HUMAN_REVIEW",
-                "Trusted authenticated sender, but AI suspicion is extremely high."
-            )
-
-        return (
-            "LEGITIMATE",
-            "Trusted brand domain with SPF + DKIM + DMARC authentication passed."
-        )
-
-    if ai_verdict == "PHISHING":
-        return (
-            "PHISHING",
-            "AI analysis indicates phishing risk."
-        )
-
-    if ai_verdict == "LEGITIMATE":
-        return (
-            "LEGITIMATE",
-            "AI analysis indicates legitimate email."
-        )
-
-    return (
-        "HUMAN_REVIEW",
-        "Signals are inconclusive and require manual review."
-    )
 
 def analyze_email(eml_bytes: bytes, source_name: str = "unknown") -> dict:
     parsed  = parse_eml(eml_bytes)
@@ -289,38 +220,25 @@ def analyze_email(eml_bytes: bytes, source_name: str = "unknown") -> dict:
     except Exception as exc:
         report["smtp_chain"] = {"error": str(exc)}
 
-        # ── Trusted Sender Override ─────────────────────────────────────────────
-    # If the sender is a verified known-good domain (SPF+DKIM+DMARC all pass),
-    # override the ML verdict to LEGITIMATE.
-    # This handles the known XGBoost training-era bias against modern HTML email.
-    _trusted = _is_trusted_sender(parsed)
+    # ── LLM Analyst (Tier 2) — runs on EVERY email, no gate ─────────────────
+    # DeBERTa / XGBoost / fusion output stays in report["text_structural"] as
+    # advisory evidence. The LLM verdict (validated against forensic facts)
+    # is the final verdict.
+    try:
+        llm = llm_run(parsed, eml_bytes, report)
+    except Exception as exc:
+        llm = {
+            "status": "fallback", "verdict": "HUMAN_REVIEW", "confidence": 0,
+            "reasons": [f"LLM analyst crashed ({type(exc).__name__}); needs human review."],
+            "error": str(exc)[:150],
+        }
 
-    if _trusted:
-        ts = report.get("text_structural", {})
-        fusion = ts.get("fusion", {})
-
-        fusion["sender_trusted"] = True
-        fusion["sender_verification"] = "VERIFIED"
-
-        # Preserve the original AI probability and verdict.
-        # Authentication must not erase AI evidence.
-        fusion["ai_verdict"] = fusion.get("verdict", "UNKNOWN")
-        fusion["ai_probability"] = fusion.get("fused_probability", 0.0)
-
-        fusion["decision_reason"] = (
-            "Sender domain is trusted and passed SPF + DKIM + DMARC authentication."
-        )
-
-        ts["fusion"] = fusion
-        report["text_structural"] = ts
-        # ── Final Verdict ────────────────────────────────────────────────────────
-        final_verdict, decision_reason = _final_decision(
-            report,
-            _trusted
-        )
-
-        report["final_verdict"] = final_verdict
-        report["decision_reason"] = decision_reason
+    report["llm_analyst"] = llm
+    report["final_verdict"] = llm["verdict"]
+    report["final_confidence"] = llm.get("confidence", 0)
+    report["decision_reason"] = " ".join(llm.get("reasons", [])[:3]) or "No reason returned."
+    for note in llm.get("validation_notes", []) or []:
+        report["flags"].append(f"[VALIDATOR] {note}")
 
     # ── PII Masking (always last) ──────────────────────────────────────────
     report = mask_report(report)

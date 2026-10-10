@@ -33,6 +33,14 @@ const API = {
         return await res.json();
     },
 
+    // Formal plain-text forensic report (always built from the saved record,
+    // so blockchain fields are filled in once anchoring has finished)
+    async getReportText(analysisId) {
+        const res = await fetch(`${this.base()}/report/${analysisId}`);
+        if (!res.ok) throw new Error(`Report not available: ${res.status}`);
+        return await res.text();
+    },
+
     // Verify on blockchain
     async verifyOnChain(analysisId) {
         const res = await fetch(`${this.base()}/verify/${analysisId}`);

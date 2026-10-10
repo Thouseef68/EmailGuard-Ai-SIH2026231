@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>EmailGuard AI — Blockchain-Anchored Email Threat Detection</title>
+    <title>EmailGuard AI — Detect · Analyze · Protect | Email Threat Detection</title>
+    <meta name="description" content="EmailGuard AI analyzes suspicious emails for phishing, malware and fraud, explains every verdict, and anchors the forensic report as tamper-evident evidence."/>
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico"/>
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png"/>
+    <meta property="og:title" content="EmailGuard AI"/>
+    <meta property="og:description" content="Detect. Analyze. Protect. AI-powered email threat detection with explainable verdicts and tamper-evident reports."/>
+    <meta property="og:image" content="assets/emailguard-logo-512.png"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/custom.css"/>
@@ -15,13 +22,14 @@
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <!-- Logo -->
         <a href="index.html" class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">E</div>
+            <span class="w-10 h-10 bg-white rounded-lg flex items-center justify-center overflow-hidden"><img src="assets/emailguard-icon-512.png" alt="EmailGuard AI logo" class="w-9 h-9 object-contain"/></span>
             <span class="text-xl font-bold text-white">EmailGuard <span class="text-indigo-400">AI</span></span>
         </a>
 
         <!-- Nav links -->
         <div class="hidden md:flex items-center gap-8 text-sm text-slate-400">
             <a href="guide.html"       class="hover:text-white transition">How It Works</a>
+            <a href="about.html"       class="hover:text-white transition">About</a>
             <a href="terms.html"       class="hover:text-white transition">Terms</a>
             <a href="cyber-apply.html" class="hover:text-white transition">Cyber Access</a>
             <a href="org-login.html"   class="hover:text-cyan-400 transition">Cyber Professional Portal</a>
@@ -51,7 +59,7 @@
     <!-- Badge -->
     <div class="inline-flex items-center gap-2 bg-indigo-600/20 border border-indigo-500/40 rounded-full px-4 py-1.5 text-sm text-indigo-300 mb-8">
         <span class="w-2 h-2 bg-indigo-400 rounded-full animate-pulse"></span>
-        SIH 2026 — Cybersecurity & Blockchain Track
+        Detect · Analyze · Protect
     </div>
 
     <h1 class="text-5xl md:text-7xl font-extrabold text-white leading-tight mb-6">
@@ -101,7 +109,7 @@
                 <div class="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-6">🧠</div>
                 <div class="text-indigo-400 font-bold text-sm mb-2">STEP 2</div>
                 <h3 class="text-white font-semibold text-lg mb-3">AI Analyzes It</h3>
-                <p class="text-slate-400 text-sm">DeBERTa V12 + XGBoost V3 + 7 forensic layers analyze every header, URL, attachment, and image.</p>
+                <p class="text-slate-400 text-sm">Local AI models and 7 forensic layers examine every header, URL, attachment and image. An LLM analyst then reviews the evidence and makes the final call on every email.</p>
             </div>
             <div class="text-center p-8 bg-slate-900 rounded-2xl border border-slate-800">
                 <div class="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-6">⛓️</div>
@@ -124,7 +132,7 @@
             <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800 hover:border-indigo-500/50 transition">
                 <div class="text-2xl mb-4">🤖</div>
                 <h3 class="text-white font-semibold mb-2">AI Detection</h3>
-                <p class="text-slate-400 text-sm">DeBERTa V12 transformer + XGBoost structural analysis fused via weighted ensemble gate.</p>
+                <p class="text-slate-400 text-sm">DeBERTa V12 and XGBoost supply evidence; an NVIDIA-hosted LLM analyst reads it all and decides, with its reasons recorded.</p>
             </div>
             <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800 hover:border-indigo-500/50 transition">
                 <div class="text-2xl mb-4">⛓️</div>
@@ -149,7 +157,7 @@
             <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800 hover:border-indigo-500/50 transition">
                 <div class="text-2xl mb-4">🔒</div>
                 <h3 class="text-white font-semibold mb-2">Legal Compliance</h3>
-                <p class="text-slate-400 text-sm">DPDP Act 2023 PII masking, BSA 2023 audit logs, IPFS off-chain + Polygon on-chain storage.</p>
+                <p class="text-slate-400 text-sm">DPDP Act 2023 PII masking, BSA 2023 audit logs, IPFS off-chain storage with on-chain hash anchoring.</p>
             </div>
         </div>
     </div>
@@ -168,6 +176,13 @@
             </div>
             <div class="px-5 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-300">
                 📜 Indian Evidence Act 1872 — Section 65B
+            </div>
+        </div>
+
+        <!-- Achievement (recognition, not identity) -->
+        <div class="mt-10 flex justify-center">
+            <div class="inline-flex items-center gap-2 bg-indigo-600/10 border border-indigo-500/30 rounded-full px-4 py-1.5 text-xs text-indigo-300">
+                🏆 Smart India Hackathon 2026 — Cybersecurity &amp; Blockchain Track
             </div>
         </div>
     </div>
@@ -244,17 +259,19 @@
 <footer class="border-t border-slate-800 py-10 px-6">
     <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">E</div>
-            <span class="text-slate-400 text-sm">EmailGuard AI — SIH 2026</span>
+            <span class="w-9 h-9 bg-white rounded-lg flex items-center justify-center overflow-hidden"><img src="assets/emailguard-icon-512.png" alt="EmailGuard AI logo" class="w-8 h-8 object-contain"/></span>
+            <span class="text-slate-400 text-sm">EmailGuard AI — Detect · Analyze · Protect</span>
         </div>
         <div class="flex gap-6 text-sm text-slate-500">
             <a href="guide.html"       class="hover:text-white transition">Guide</a>
+            <a href="about.html"       class="hover:text-white transition">About</a>
+            <a href="mailto:founder@emailguardai.me" class="hover:text-white transition">Contact</a>
             <a href="terms.html"       class="hover:text-white transition">Terms</a>
             <a href="cyber-apply.html" class="hover:text-white transition">Cyber Access</a>
             <a href="org-login.html"   class="hover:text-cyan-400 transition">Cyber Professional Portal</a>
             <a href="admin-login.html" class="hover:text-red-400 transition">Admin</a>
         </div>
-        <p class="text-slate-600 text-xs">© 2026 EmailGuard AI. Built for SIH 2026.</p>
+        <p class="text-slate-600 text-xs">© 2026 EmailGuard AI. All rights reserved.</p>
     </div>
 </footer>
 

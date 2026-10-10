@@ -16,3 +16,4 @@ Pillow
 supabase
 web3
 py-solc-x
+openai>=1.40.0

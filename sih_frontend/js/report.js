@@ -12,6 +12,7 @@ const ReportRenderer = {
         const root  = document.getElementById("report-content");
         root.innerHTML = `
             ${this.renderVerdictHero()}
+            ${this.renderLLMAnalyst()}
             ${this.renderEmailMeta()}
             ${this.renderFlags()}
             ${this.renderAIScores()}
@@ -31,344 +32,142 @@ const ReportRenderer = {
         this.pollBlockchain();
     },
 
-    // ── THEORY GENERATOR ──────────────────────────────────────────────────
-    getFinalAssessmentTheory() {
-        const report = this.report || {};
-        const ts = report.text_structural || {};
-        const fusion = ts.fusion || {};
-
-        let verdict = report.final_verdict || "UNKNOWN";
-
-        // Never expose UNKNOWN to the user.
-        if (verdict === "UNKNOWN") {
-            verdict = "HUMAN_REVIEW";
-        }
-
-        const aiVerdict =
-            fusion.ai_verdict ||
-            fusion.verdict ||
-            "UNKNOWN";
-
-        const aiProbability =
-            fusion.ai_probability !== undefined
-                ? Number(fusion.ai_probability)
-                : Number(fusion.fused_probability || 0);
-
-        const phishingPct = (aiProbability * 100).toFixed(2);
-        const legitimatePct = ((1 - aiProbability) * 100).toFixed(2);
-
-        const flags = report.flags || [];
-        const forensics = report.forensics || {};
-
-        const evidence = [];
-
-        // ─────────────────────────────────────────────
-        // AI ASSESSMENT
-        // ─────────────────────────────────────────────
-
-        if (aiVerdict === "PHISHING") {
-
-            evidence.push(
-                `The AI models identified phishing-like characteristics, resulting in ${phishingPct}% phishing probability.`
-            );
-
-        } else if (aiVerdict === "LEGITIMATE") {
-
-            evidence.push(
-                `The AI models found the email more consistent with legitimate communication, resulting in ${legitimatePct}% legitimate probability.`
-            );
-        }
-
-        // ─────────────────────────────────────────────
-        // FORENSIC EVIDENCE
-        // ─────────────────────────────────────────────
-
-        const mismatch =
-            forensics.address_mismatch?.verdict;
-
-        const typosquat =
-            forensics.typosquat?.verdict;
-
-        const auth =
-            forensics.auth_headers?.verdict;
-
-        const whois =
-            forensics.whois?.verdict;
-
-        const urlRep =
-            forensics.url_reputation?.verdict;
-
-        // Address mismatch
-        if (mismatch === "high") {
-
-            evidence.push(
-                "A high address mismatch was detected, which can indicate sender spoofing or routing inconsistencies."
-            );
-
-        } else if (mismatch === "medium") {
-
-            evidence.push(
-                "A medium address mismatch was detected and should be considered during verification."
-            );
-
-        } else if (
-            mismatch === "none" ||
-            mismatch === "pass"
-        ) {
-
-            evidence.push(
-                "No significant sender address mismatch was detected."
-            );
-        }
-
-        // Typosquatting
-        if (
-            typosquat === "high" ||
-            typosquat === "medium"
-        ) {
-
-            evidence.push(
-                "The domain analysis identified possible brand or domain impersonation indicators."
-            );
-
-        } else if (
-            typosquat === "none" ||
-            typosquat === "pass"
-        ) {
-
-            evidence.push(
-                "No significant typosquatting indicator was detected."
-            );
-        }
-
-        // Authentication
-        if (
-            auth === "trusted" ||
-            auth === "pass"
-        ) {
-
-            evidence.push(
-                "Authentication evidence indicates that the sending infrastructure was authorized for the domain."
-            );
-
-        } else if (
-            auth === "fail" ||
-            auth === "high"
-        ) {
-
-            evidence.push(
-                "Authentication analysis identified an issue with the claimed sender."
-            );
-        }
-
-        // WHOIS
-        if (whois === "trusted") {
-
-            evidence.push(
-                "The domain ownership and WHOIS analysis provided trusted evidence."
-            );
-        }
-
-        // URL reputation
-        if (
-            urlRep === "high" ||
-            urlRep === "malicious"
-        ) {
-
-            evidence.push(
-                "URL reputation analysis identified potentially risky or malicious links."
-            );
-
-        } else if (
-            urlRep === "none" ||
-            urlRep === "clean"
-        ) {
-
-            evidence.push(
-                "No significant URL reputation issue was detected."
-            );
-        }
-
-        // ─────────────────────────────────────────────
-        // EMAIL FLAGS
-        // ─────────────────────────────────────────────
-
-        if (flags.length > 0) {
-
-            evidence.push(
-                `${flags.length} detection flag(s) were generated during analysis.`
-            );
-        }
-
-        // ─────────────────────────────────────────────
-        // FINAL DECISION THEORY
-        // ─────────────────────────────────────────────
-
-        let finalReason = "";
-
-        if (verdict === "PHISHING") {
-
-            finalReason =
-                "The email was classified as PHISHING because the combined AI and forensic evidence indicates a sufficiently high security risk. The detected indicators suggest possible deception, impersonation, credential theft, malicious redirection, or other phishing-related activity.";
-
-        } else if (verdict === "LEGITIMATE") {
-
-            finalReason =
-                "The email was classified as LEGITIMATE because the available sender, authentication, and forensic evidence supports a genuine communication. Trusted sender verification and supporting security checks provide sufficient confidence for the final legitimate decision.";
-
-        } else {
-
-            finalReason =
-                "Human review is required because the AI detected meaningful phishing risk, but the available evidence is not sufficient for an automatic final classification. A human analyst should verify the sender, domain, authentication results, and email context before making the final decision.";
-
-            if (evidence.length === 0) {
-
-                evidence.push(
-                    "Manual verification of the sender, domain, authentication results, and email context is recommended."
-                );
-            }
-        }
-
-        return {
-            verdict,
-            aiVerdict,
-            phishingPct,
-            legitimatePct,
-            finalReason,
-            evidence
-        };
+    // ── helpers ───────────────────────────────────────────────────────────
+    // Everything that originates in an email or in LLM output is untrusted and
+    // is escaped before it is placed in innerHTML.
+    _esc(v) {
+        return String(v ?? "").replace(/[&<>"']/g, c => (
+            { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+        ));
     },
 
-    // ── 1. VERDICT HERO ───────────────────────────────────────────────────
+    // ── 1. VERDICT HERO (final verdict = AI analyst, validated) ───────────
     renderVerdictHero() {
         const report = this.report || {};
-        const fusion = report.text_structural?.fusion || {};
+        const llm    = report.llm_analyst || {};
 
-        const aiProbability =
-            fusion.ai_probability !== undefined
-                ? Number(fusion.ai_probability)
-                : Number(fusion.fused_probability || 0);
+        let v = report.final_verdict || llm.verdict || "HUMAN_REVIEW";
+        if (v === "UNKNOWN") v = "HUMAN_REVIEW";
 
-        const aiVerdict =
-            fusion.ai_verdict ||
-            fusion.verdict ||
-            "UNKNOWN";
+        const conf     = report.final_confidence ?? llm.confidence;
+        const fallback = llm.status === "fallback";
+        const reason   = report.decision_reason || "";
+        const subject  = report.parsed?.subject || "Unknown Subject";
+        const source   = report.source || "";
 
-        const senderTrusted =
-            fusion.sender_trusted === true ||
-            fusion.sender_verification === "VERIFIED";
-
-        // Determine display decision if backend returned UNKNOWN.
-        let v = report.final_verdict || "UNKNOWN";
-
-        if (v === "UNKNOWN" || !v) {
-
-            if (senderTrusted) {
-
-                if (aiProbability >= 0.90) {
-                    v = "HUMAN_REVIEW";
-                } else {
-                    v = "LEGITIMATE";
-                }
-
-            } else if (aiVerdict === "PHISHING") {
-
-                if (aiProbability >= 0.90) {
-                    v = "PHISHING";
-                } else {
-                    v = "HUMAN_REVIEW";
-                }
-
-            } else if (aiVerdict === "LEGITIMATE") {
-
-                v = "LEGITIMATE";
-
-            } else {
-
-                v = "HUMAN_REVIEW";
-            }
-        }
-
-        const icon = Utils.verdictIcon(v);
-        const bgCls = Utils.verdictBg(v);
+        const icon   = Utils.verdictIcon(v);
+        const bgCls  = Utils.verdictBg(v);
         const txtCls = Utils.verdictColor(v);
 
-        const aiPct =
-            (aiProbability * 100).toFixed(2) +
-            "% phishing probability";
-
-        const subject =
-            report.parsed?.subject ||
-            "Unknown Subject";
-
-        const source =
-            report.source ||
-            "";
-
-        const senderVerification =
-            fusion.sender_verification ||
-            (senderTrusted ? "VERIFIED" : "NOT VERIFIED");
-
-        const decisionReason =
-            report.decision_reason ||
-            fusion.decision_reason ||
-            "";
+        const label = { PHISHING: "PHISHING", LEGITIMATE: "LEGITIMATE", HUMAN_REVIEW: "HUMAN REVIEW" }[v] || v;
 
         return `
         <div class="${bgCls} rounded-2xl p-8 mb-6 text-center">
-
             <div class="text-6xl mb-4">${icon}</div>
-
-            <p class="text-slate-400 text-sm uppercase tracking-wider">
-                Final Verdict
-            </p>
-
-            <h1 class="${txtCls} text-5xl font-extrabold mb-2">
-                ${v}
-            </h1>
+            <p class="text-slate-400 text-sm uppercase tracking-wider">Final Verdict</p>
+            <h1 class="${txtCls} text-5xl font-extrabold mb-2">${this._esc(label)}</h1>
 
             <div class="mt-5 space-y-2">
-
+                ${conf !== undefined && conf !== null ? `
                 <p class="text-slate-300 text-lg">
-                    AI Assessment:
-                    <span class="font-bold">${aiVerdict}</span>
-                    — ${aiPct}
+                    Analyst confidence: <span class="font-bold">${this._esc(conf)}%</span>
+                </p>` : ""}
+                <p class="text-slate-400 text-sm">
+                    Decided by the EmailGuard AI analyst${llm.model ? ` · ${this._esc(llm.model)}` : ""}
                 </p>
-
-                <p class="text-slate-300 text-sm">
-                    Sender Verification:
-                    <span class="font-bold ${
-                        senderVerification === "VERIFIED"
-                            ? "text-green-400"
-                            : "text-yellow-400"
-                    }">
-                        ${senderVerification}
-                    </span>
-                </p>
-
-                ${
-                    decisionReason
-                        ? `
-                        <p class="text-slate-400 text-xs mt-2">
-                            ${decisionReason}
-                        </p>
-                        `
-                        : ""
-                }
-
+                ${fallback ? `
+                <p class="text-yellow-300 text-sm font-medium">
+                    ⚠ The AI analyst was unavailable, so this email was sent to human review.
+                </p>` : ""}
+                ${reason ? `<p class="text-slate-300 text-sm mt-2 max-w-2xl mx-auto">${this._esc(reason)}</p>` : ""}
             </div>
 
-            <p class="text-slate-400 text-sm mt-5 truncate max-w-xl mx-auto"
-               title="${subject}">
-                📧 ${subject}
+            <p class="text-slate-400 text-sm mt-5 truncate max-w-xl mx-auto" title="${this._esc(subject)}">
+                📧 ${this._esc(subject)}
             </p>
+            ${source ? `<p class="text-slate-600 text-xs mt-1">${this._esc(source)}</p>` : ""}
+        </div>`;
+    },
 
-            ${
-                source
-                    ? `<p class="text-slate-600 text-xs mt-1">${source}</p>`
-                    : ""
-            }
+    // ── 1b. AI ANALYST REVIEW ─────────────────────────────────────────────
+    renderLLMAnalyst() {
+        const llm = this.report?.llm_analyst;
+        if (!llm) return "";
 
+        const sevCls = {
+            HIGH:   "border-red-500/40 bg-red-500/10 text-red-300",
+            MEDIUM: "border-yellow-500/40 bg-yellow-500/10 text-yellow-300",
+            LOW:    "border-slate-600 bg-slate-800/60 text-slate-300",
+            INFO:   "border-slate-700 bg-slate-800/40 text-slate-400",
+        };
+        const order = { HIGH: 0, MEDIUM: 1, LOW: 2, INFO: 3 };
+
+        const reasons = (llm.reasons || []).map((r, i) => `
+            <li class="flex gap-3 text-sm text-slate-200">
+                <span class="text-indigo-400 font-bold flex-shrink-0">${i + 1}.</span>
+                <span>${this._esc(r)}</span>
+            </li>`).join("");
+
+        const findings = [...(llm.forensic_findings || [])]
+            .sort((a, b) => (order[String(a.severity).toUpperCase()] ?? 9) - (order[String(b.severity).toUpperCase()] ?? 9))
+            .map(f => {
+                const sev = String(f.severity || "INFO").toUpperCase();
+                return `
+                <li class="flex items-start gap-3 px-4 py-3 rounded-lg border ${sevCls[sev] || sevCls.INFO} text-sm">
+                    <span class="font-mono text-xs flex-shrink-0 mt-0.5">${this._esc(f.id)}</span>
+                    <span class="text-xs font-bold flex-shrink-0 mt-0.5 w-16">${this._esc(sev)}</span>
+                    <span>${this._esc(f.text)}</span>
+                </li>`;
+            }).join("");
+
+        const highs = (llm.high_findings || []).map(h => `
+            <li class="flex items-start gap-3 text-sm">
+                <span class="font-mono text-xs text-slate-400 flex-shrink-0 mt-0.5">${this._esc(h.id)}</span>
+                <span class="text-xs font-bold flex-shrink-0 mt-0.5 w-20 ${h.stance === "confirmed" ? "text-red-400" : "text-green-400"}">${this._esc(String(h.stance || "").toUpperCase())}</span>
+                <span class="text-slate-300">${this._esc(h.why || "")}</span>
+            </li>`).join("");
+
+        const notes = (llm.validation_notes || []).map(n => `
+            <li class="text-xs text-slate-400">• ${this._esc(n)}</li>`).join("");
+
+        const changed = llm.llm_verdict_raw && llm.verdict && llm.llm_verdict_raw !== llm.verdict;
+
+        return `
+        <div class="bg-slate-900 border border-indigo-500/30 rounded-2xl p-6 mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+                <h2 class="text-white font-bold text-lg">🧠 AI Analyst Review</h2>
+                <div class="flex flex-wrap gap-2 text-xs">
+                    ${llm.model ? `<span class="px-3 py-1 bg-slate-800 border border-slate-700 rounded-full text-slate-300">${this._esc(llm.model)}</span>` : ""}
+                    ${llm.latency_ms ? `<span class="px-3 py-1 bg-slate-800 border border-slate-700 rounded-full text-slate-400">${this._esc(llm.latency_ms)} ms</span>` : ""}
+                    ${llm.re_asked ? `<span class="px-3 py-1 bg-yellow-500/10 border border-yellow-500/40 rounded-full text-yellow-300">Asked twice</span>` : ""}
+                </div>
+            </div>
+
+            ${llm.status === "fallback" ? `
+            <div class="mb-5 p-4 rounded-xl border border-yellow-500/40 bg-yellow-500/10 text-yellow-200 text-sm">
+                The AI analyst could not complete this review${llm.error ? ` (${this._esc(llm.error)})` : ""}. The email was routed to human review instead of being guessed.
+            </div>` : ""}
+
+            ${changed ? `
+            <div class="mb-5 p-4 rounded-xl border border-yellow-500/40 bg-yellow-500/10 text-yellow-200 text-sm">
+                The analyst first answered <b>${this._esc(llm.llm_verdict_raw)}</b>; after validation against the verified facts the final verdict is <b>${this._esc(llm.verdict)}</b>.
+            </div>` : ""}
+
+            ${reasons ? `
+            <p class="text-slate-400 text-xs uppercase tracking-wide mb-3 font-medium">Why</p>
+            <ul class="space-y-2 mb-6">${reasons}</ul>` : ""}
+
+            ${findings ? `
+            <p class="text-slate-400 text-xs uppercase tracking-wide mb-3 font-medium">Verified findings (computed by code)</p>
+            <ul class="space-y-2 mb-6">${findings}</ul>` : ""}
+
+            ${highs ? `
+            <p class="text-slate-400 text-xs uppercase tracking-wide mb-3 font-medium">Analyst response to each HIGH finding</p>
+            <ul class="space-y-2 mb-6">${highs}</ul>` : ""}
+
+            ${notes ? `
+            <p class="text-slate-400 text-xs uppercase tracking-wide mb-2 font-medium">Validator notes</p>
+            <ul class="space-y-1">${notes}</ul>` : ""}
         </div>`;
     },
     // ── 2. EMAIL METADATA ─────────────────────────────────────────────────
@@ -425,7 +224,7 @@ const ReportRenderer = {
         return `
         <div class="flex gap-2">
             <span class="text-slate-500 w-28 flex-shrink-0">${label}</span>
-            <span class="text-white break-all">${value}</span>
+            <span class="text-white break-all">${this._esc(value)}</span>
         </div>`;
     },
 
@@ -440,7 +239,7 @@ const ReportRenderer = {
                                   : "border-slate-700 bg-slate-800/50 text-slate-300";
             return `<li class="flex items-start gap-2 px-4 py-3 rounded-lg border ${color} text-sm">
                 <span class="flex-shrink-0 mt-0.5">${isWarn ? "⚠️" : "ℹ️"}</span>
-                <span>${f}</span>
+                <span>${this._esc(f)}</span>
             </li>`;
         }).join("");
 
@@ -577,7 +376,7 @@ const ReportRenderer = {
             <div class="flex items-center justify-between mb-5">
 
                 <h2 class="text-white font-bold text-lg">
-                    🤖 AI Analysis
+                    🧪 Local Model Evidence (advisory)
                 </h2>
 
                 ${agreeBadge}
@@ -600,7 +399,7 @@ const ReportRenderer = {
 
             </div>
 
-            <!-- AI Fusion Assessment -->
+            <!-- Local Fusion Score (advisory) -->
 
             <div class="mt-4 p-4 rounded-xl ${Utils.verdictBg(aiVerdict)}">
 
@@ -609,11 +408,11 @@ const ReportRenderer = {
                     <div>
 
                         <p class="text-slate-300 text-sm font-medium">
-                            AI Fusion Assessment
+                            Local Fusion Score (advisory)
                         </p>
 
                         <p class="text-slate-400 text-xs mt-0.5">
-                            Combined ML model assessment
+                            Combined local model score. Input to the AI analyst, not the final verdict
                         </p>
 
                     </div>
@@ -1159,12 +958,18 @@ const ReportRenderer = {
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
                 <p class="text-white font-semibold">Download Forensic Report</p>
-                <p class="text-slate-400 text-sm">Save a PDF copy of this full analysis for your records.</p>
+                <p class="text-slate-400 text-sm">Formal structured report: determination, findings, indicators, IP addresses, map links and evidence integrity. Text only, no screenshots.</p>
             </div>
-            <button onclick="ReportRenderer.downloadPDF()"
-                class="flex-shrink-0 bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-6 py-3 rounded-xl transition flex items-center gap-2">
-                📥 Download PDF
-            </button>
+            <div class="flex flex-wrap gap-3 flex-shrink-0">
+                <button onclick="ReportRenderer.downloadText()"
+                    class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-3 rounded-xl transition">
+                    📄 Download .txt
+                </button>
+                <button onclick="ReportRenderer.downloadPDF()"
+                    class="border border-slate-600 hover:border-slate-400 text-slate-200 font-medium px-5 py-3 rounded-xl transition">
+                    📥 Download PDF
+                </button>
+            </div>
         </div>`;
     },
 
@@ -1245,807 +1050,114 @@ const ReportRenderer = {
         }
     },
 
-    // ── 15. PDF DOWNLOAD ──────────────────────────────────────────────────
-    async downloadPDF() {
-        const stripEmoji = (str) => str.replace(/[\u{1F300}-\u{1FFFF}|\u{2600}-\u{27BF}]/gu, "").trim();
-        Utils.toast("Generating PDF report...", "info");
+    // ── 15. REPORT DOWNLOAD (.txt and PDF, same content) ──────────────────
+    // The backend writes the report. We ask it again at download time so the
+    // blockchain fields are filled in even if anchoring finished after the scan.
+    async _getReportText() {
+        const id = this.report?.blockchain?.analysis_id;
+        if (id) {
+            try {
+                const text = await API.getReportText(id);
+                if (text && text.length > 200) return text;
+            } catch (e) {
+                console.warn("Fresh report fetch failed, using the copy from the scan:", e.message);
+            }
+        }
+        if (this.report?.report_text) return this.report.report_text;
+        throw new Error("The report text is not available. Please run the analysis again.");
+    },
+
+    _reportBaseName() {
+        const id = this.report?.blockchain?.analysis_id;
+        return this.report?.report_filename
+            ? this.report.report_filename.replace(/\.txt$/i, "")
+            : `EmailGuardAI_Forensic_Report_${id || Date.now()}`;
+    },
+
+    async downloadText() {
         try {
+            Utils.toast("Preparing report...", "info");
+            const text = await this._getReportText();
+            const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement("a");
+            a.href = url;
+            a.download = this._reportBaseName() + ".txt";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+            Utils.toast("✅ Report downloaded", "success");
+        } catch (err) {
+            console.error("Report error:", err);
+            Utils.toast("Report download failed: " + err.message, "error");
+        }
+    },
+
+    async downloadPDF() {
+        try {
+            if (!window.jspdf) throw new Error("PDF library did not load. Use the .txt download.");
+            Utils.toast("Generating PDF report...", "info");
+
+            const text  = await this._getReportText();
+            const lines = text.replace(/\r/g, "").split("\n");
+
             const { jsPDF } = window.jspdf;
-            const pdf  = new jsPDF("p", "mm", "a4");
-            const W    = pdf.internal.pageSize.getWidth();
-            const H    = pdf.internal.pageSize.getHeight();
-            const M    = 15;           // margin
-            const IW   = W - M * 2;   // inner width
-            let   y    = M;
-            let   pg   = 1;
+            const pdf = new jsPDF("p", "mm", "a4");
+            const W = pdf.internal.pageSize.getWidth();
+            const H = pdf.internal.pageSize.getHeight();
+            const ML = 20, TOP = 20, BOTTOM = 18, LH = 4.0, FS = 9;
+            const maxY = H - BOTTOM;
 
-            const report = this.report;
-
-            let verdict = report.final_verdict || "UNKNOWN";
-
-            const bc = report.blockchain || {};
-            const parsed = report.parsed || {};
-
-            const fusion = report.text_structural?.fusion || {};
-
-            const aiVerdict =
-                fusion.ai_verdict ||
-                fusion.verdict ||
-                "UNKNOWN";
-
-            const aiProbability =
-                fusion.ai_probability !== undefined
-                    ? Number(fusion.ai_probability)
-                    : Number(fusion.fused_probability || 0);
-
-            const phishingPct =
-                (aiProbability * 100).toFixed(2);
-
-            const legitimatePct =
-                ((1 - aiProbability) * 100).toFixed(2);
-
-            const senderTrusted =
-                fusion.sender_trusted === true ||
-                fusion.sender_verification === "VERIFIED";
-
-            if (verdict === "UNKNOWN" || !verdict) {
-
-                if (senderTrusted) {
-
-                    verdict =
-                        aiProbability >= 0.90
-                            ? "HUMAN_REVIEW"
-                            : "LEGITIMATE";
-
-                } else if (aiVerdict === "PHISHING") {
-
-                    verdict =
-                        aiProbability >= 0.90
-                            ? "PHISHING"
-                            : "HUMAN_REVIEW";
-
-                } else if (aiVerdict === "LEGITIMATE") {
-
-                    verdict = "LEGITIMATE";
-
-                } else {
-
-                    verdict = "HUMAN_REVIEW";
-                }
-            }
-
-            const senderVerification =
-                fusion.sender_verification ||
-                (senderTrusted ? "VERIFIED" : "NOT VERIFIED");
-
-            const decisionReason =
-                report.decision_reason ||
-                fusion.decision_reason ||
-                "";
-
-            // Generate explanation theory for the final decision
-            let theoryTitle = "";
-            let theoryText = "";
-
-            if (verdict === "PHISHING") {
-
-                theoryTitle = "WHY THIS EMAIL WAS CLASSIFIED AS PHISHING";
-
-                theoryText =
-                    "The email was classified as PHISHING because the combined AI " +
-                    "and forensic evidence indicates a sufficiently high security risk. " +
-                    "The detected characteristics may indicate deception, impersonation, " +
-                    "credential theft, malicious redirection, or other phishing-related activity.";
-
-            } else if (verdict === "LEGITIMATE") {
-
-                theoryTitle = "WHY THIS EMAIL WAS CLASSIFIED AS LEGITIMATE";
-
-                theoryText =
-                    "The email was classified as LEGITIMATE because the available sender, " +
-                    "authentication, and forensic evidence supports a genuine communication. " +
-                    "Trusted sender verification and supporting security checks provide " +
-                    "sufficient confidence for the final legitimate decision.";
-
-            } else {
-
-                theoryTitle = "WHY HUMAN REVIEW IS REQUIRED";
-
-                theoryText =
-                    "Human review is required because the available evidence is not sufficient " +
-                    "for an automatic final classification. A human analyst should verify the " +
-                    "sender, domain, authentication results, URLs, and email context before " +
-                    "making the final decision.";
-            }
-
-            // ── Color helpers — explicit r,g,b, no spread ─────────────────────
-            const tc = (r,g,b)  => pdf.setTextColor(r,g,b);
-            const fc = (r,g,b)  => pdf.setFillColor(r,g,b);
-            const dc = (r,g,b)  => pdf.setDrawColor(r,g,b);
-
-            // Named colors
-            const C = {
-                dark:    [15,  23,  42],
-                card:    [30,  41,  59],
-                indigo:  [99,  102, 241],
-                s300:    [203, 213, 225],
-                s400:    [148, 163, 184],
-                s500:    [100, 116, 139],
-                white:   [255, 255, 255],
-                red:     [239, 68,  68 ],
-                green:   [34,  197, 94 ],
-                yellow:  [245, 158, 11 ],
-            };
-
-            const verdictRGB = verdict === "PHISHING"  ? C.red
-                            : verdict === "LEGITIMATE" ? C.green
-                            : C.yellow;
-
-            // ── Helper: add new page ──────────────────────────────────────────
-            const newPage = () => {
-                addFooter();
-                pdf.addPage();
-                pg++;
-                y = M;
-                fc(...C.dark); pdf.rect(0,0,W,H,"F");
-            };
-
-            const checkY = (need) => { if (y + need > H - 22) newPage(); };
-
-            // ── Helper: footer ────────────────────────────────────────────────
-            const addFooter = () => {
-                fc(20,30,48);   pdf.rect(0, H-12, W, 12, "F");
-                dc(...C.indigo);pdf.setLineWidth(0.3);
-                pdf.line(0, H-12, W, H-12);
-                pdf.setFontSize(6.5); pdf.setFont("helvetica","normal");
-                tc(...C.s500);
-                pdf.text("© 2026 EmailGuard AI — Built for SIH 2026", M, H-5);
-                pdf.text(`Page ${pg}`, W/2, H-5, { align:"center" });
-                if (bc.analysis_id) {
-                    pdf.text(`ID: ${bc.analysis_id.slice(0,24)}...`, W-M, H-5, { align:"right" });
-                }
-            };
-
-            // ── Helper: section box ───────────────────────────────────────────
-            const section = (title, fn) => {
-                checkY(16);
-                const sy = y;
-                // Header bar
-                fc(...C.indigo); pdf.roundedRect(M, y, IW, 7, 2, 2, "F");
-                tc(...C.white); pdf.setFontSize(8); pdf.setFont("helvetica","bold");
-                pdf.text(title, M+4, y+5);
-                y += 9;
-                fn();
-                y += 4;
-                // Box border
-                dc(...C.indigo); pdf.setLineWidth(0.3);
-                pdf.roundedRect(M, sy, IW, y-sy, 2, 2, "S");
-                y += 5;
-            };
-
-            // ── Helper: key-value row ─────────────────────────────────────────
-            const kv = (label, value, valueColor) => {
-                checkY(6);
-                pdf.setFontSize(7.5); pdf.setFont("helvetica","bold");
-                tc(...C.s400); pdf.text(label+":", M+4, y);
-                pdf.setFont("helvetica","normal");
-                if (valueColor) tc(...valueColor); else tc(...C.s300);
-                const v = String(value || "—");
-                pdf.text(v.length > 70 ? v.slice(0,70)+"…" : v, M+40, y);
-                y += 6;
-            };
-
-            // ── Helper: progress bar ──────────────────────────────────────────
-            const bar = (label, prob, verd) => {
-                checkY(13);
-                const pct   = prob !== undefined ? prob : 0;
-                const bColor= pct > 0.65 ? C.red : pct < 0.40 ? C.green : C.yellow;
-                const bW    = IW - 70;
-
-                pdf.setFontSize(7.5); pdf.setFont("helvetica","bold");
-                tc(...C.s300); pdf.text(label, M+4, y);
-                const vc = verd === "PHISHING" ? C.red : verd === "LEGITIMATE" ? C.green : C.yellow;
-                tc(...vc); pdf.text(verd||"—", W-M-4, y, {align:"right"});
-                y += 5;
-
-                fc(...C.card); pdf.roundedRect(M+4, y-1, bW, 4, 1,1,"F");
-                fc(...bColor); pdf.roundedRect(M+4, y-1, bW*pct, 4, 1,1,"F");
-                pdf.setFontSize(7); pdf.setFont("helvetica","normal");
-                tc(...C.s400); pdf.text(`${(pct*100).toFixed(1)}%`, M+bW+8, y+2);
-                y += 8;
-            };
-
-            // ════════════════════════════════════════════════════════════════
-            // PAGE 1
-            // ════════════════════════════════════════════════════════════════
-            fc(...C.dark); pdf.rect(0,0,W,H,"F");
-
-            // Header bar
-            fc(...C.indigo); pdf.rect(0,0,W,20,"F");
-            tc(...C.white);
-            pdf.setFontSize(13); pdf.setFont("helvetica","bold");
-            pdf.text("EmailGuard AI", M, 9);
-            pdf.setFontSize(7.5); pdf.setFont("helvetica","normal");
-            pdf.text("AI-Powered Email Threat Detection — Forensic Report", M, 15);
-            pdf.text(`Generated: ${new Date().toLocaleString("en-IN")}`, W-M, 9, {align:"right"});
-            pdf.text("SIH 2026 — Cybersecurity & Blockchain Track", W-M, 15, {align:"right"});
-            y = 28;
-
-            // Verdict banner
-            fc(...verdictRGB);
-            pdf.roundedRect(M, y, IW, 30, 3, 3, "F");
-
-            tc(...C.white);
-            pdf.setFontSize(20);
-            pdf.setFont("helvetica", "bold");
-
-            const bannerTxt =
-                verdict === "PHISHING"
-                    ? "!! PHISHING DETECTED"
-                    : verdict === "LEGITIMATE"
-                        ? ">> LEGITIMATE EMAIL"
-                        : "?? NEEDS HUMAN REVIEW";
-
-            pdf.text(bannerTxt, W / 2, y + 12, { align: "center" });
-
-            pdf.setFontSize(8);
-            pdf.setFont("helvetica", "normal");
-
-            if (aiProbability !== undefined) {
-                pdf.text(
-                    `AI Assessment: ${aiVerdict} — ${(aiProbability * 100).toFixed(2)}% phishing probability`,
-                    W / 2,
-                    y + 20,
-                    { align: "center" }
-                );
-            }
-
-            pdf.setFontSize(7.5);
-            pdf.text(
-                `Sender Verification: ${senderVerification}`,
-                W / 2,
-                y + 26,
-                { align: "center" }
-            );
-
-            y += 37;
-
-            // Email Info
-            section("EMAIL INFORMATION", () => {
-                kv("Subject",     parsed.subject      || "—");
-                kv("From",        parsed.from_addr    || "—");
-                kv("Domain",      parsed.from_domain  || "—");
-                const spfC  = parsed.spf  === "pass" ? C.green : C.red;
-                const dkimC = parsed.dkim === "pass" ? C.green : C.red;
-                const dmC   = parsed.dmarc=== "pass" ? C.green : C.red;
-                kv("SPF",   (parsed.spf   ||"none").toUpperCase(), spfC);
-                kv("DKIM",  (parsed.dkim  ||"none").toUpperCase(), dkimC);
-                kv("DMARC", (parsed.dmarc ||"none").toUpperCase(), dmC);
-                kv("Hops",  parsed.received_hops ?? "—");
+            const id = this.report?.blockchain?.analysis_id || "";
+            pdf.setProperties({
+                title:   "EmailGuard AI - Email Threat Forensic Analysis Report",
+                subject: id ? `Analysis ${id}` : "Forensic analysis report",
+                author:  "EmailGuard AI",
+                creator: "EmailGuard AI",
             });
 
-            // AI Analysis
-            section("AI ANALYSIS", () => {
-                const ts  = report.text_structural || {};
-                bar("DeBERTa V12 (Language + Behavior)", ts.deberta?.probability, ts.deberta?.verdict);
-                bar("XGBoost V3 (Header Structure)",     ts.xgboost?.probability, ts.xgboost?.verdict);
-                y += 2;
+            pdf.setFont("courier", "normal");
+            pdf.setFontSize(FS);
+            pdf.setTextColor(20, 20, 20);
 
-                // AI Fusion Assessment
-                const aiVerdictRGB =
-                    aiVerdict === "PHISHING"
-                        ? C.red
-                        : aiVerdict === "LEGITIMATE"
-                            ? C.green
-                            : C.yellow;
+            let y = TOP;
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const next = lines[i + 1] || "";
+                const isHeading = /^SECTION \d+\./.test(line) ||
+                                  (line.trim() && /^\s*-{3,}\s*$/.test(next) && !/^\s*-{3,}\s*$/.test(line));
 
-                fc(...aiVerdictRGB);
-                pdf.roundedRect(M + 4, y - 2, IW - 8, 11, 2, 2, "F");
+                // keep a heading together with the lines under it
+                if (isHeading && y + LH * 4 > maxY) { pdf.addPage(); y = TOP; }
+                if (y + LH > maxY)                  { pdf.addPage(); y = TOP; }
 
-                tc(...C.white);
-                pdf.setFontSize(9);
-                pdf.setFont("helvetica", "bold");
+                pdf.setFont("courier", isHeading ? "bold" : "normal");
+                if (line) pdf.text(line, ML, y);
+                y += LH;
+            }
 
-                pdf.text(
-                    `AI Fusion Assessment: ${aiVerdict}`,
-                    M + 8,
-                    y + 5
-                );
-
-                pdf.setFontSize(7.5);
+            // running header + footer, written once the page count is known
+            const pages = pdf.getNumberOfPages();
+            for (let p = 1; p <= pages; p++) {
+                pdf.setPage(p);
                 pdf.setFont("helvetica", "normal");
-
-                pdf.text(
-                    `${phishingPct}% phishing probability`,
-                    W - M - 8,
-                    y + 5,
-                    { align: "right" }
-                );
-
-                y += 14;
-
-                // Final Decision with Sender Verification
-                const finalDecisionColor =
-                    verdict === "PHISHING"
-                        ? C.red
-                        : verdict === "LEGITIMATE"
-                            ? C.green
-                            : C.yellow;
-
-                fc(...finalDecisionColor);
-                pdf.roundedRect(M + 4, y - 2, IW - 8, 11, 2, 2, "F");
-
-                tc(...C.white);
-                pdf.setFontSize(9);
-                pdf.setFont("helvetica", "bold");
-
-                pdf.text(
-                    `Final Decision: ${verdict}`,
-                    M + 8,
-                    y + 5
-                );
-
                 pdf.setFontSize(7.5);
-                pdf.setFont("helvetica", "normal");
-
-                const verificationLabel =
-                    senderTrusted ? "VERIFIED" : "NOT VERIFIED";
-
-                pdf.text(
-                    `Sender: ${verificationLabel}`,
-                    W - M - 8,
-                    y + 5,
-                    { align: "right" }
-                );
-
-                y += 14;
-
-                if (decisionReason) {
-                    kv("Decision Reason", decisionReason);
-                }
-            });
-
-            // Final Assessment
-            section("FINAL ASSESSMENT", () => {
-
-                kv(
-                    "AI Assessment",
-                    aiVerdict,
-                    aiVerdict === "PHISHING"
-                        ? C.red
-                        : aiVerdict === "LEGITIMATE"
-                            ? C.green
-                            : C.yellow
-                );
-
-                kv(
-                    "Phishing Probability",
-                    `${phishingPct}%`,
-                    C.red
-                );
-
-                kv(
-                    "Legitimate Probability",
-                    `${legitimatePct}%`,
-                    C.green
-                );
-
-                kv(
-                    "Final Decision",
-                    verdict,
-                    verdict === "PHISHING"
-                        ? C.red
-                        : verdict === "LEGITIMATE"
-                            ? C.green
-                            : C.yellow
-                );
-
-                kv(
-                    "Sender Verification",
-                    senderVerification,
-                    senderTrusted ? C.green : C.yellow
-                );
-
-                if (decisionReason) {
-
-                    pdf.setFontSize(7.5);
-                    pdf.setFont("helvetica", "bold");
-                    tc(...C.s300);
-
-                    pdf.text(
-                        "WHY THIS DECISION?",
-                        M + 4,
-                        y
-                    );
-
-                    y += 6;
-
-                    pdf.setFont("helvetica", "normal");
-                    tc(...C.s400);
-
-                    pdf.text(
-                        decisionReason,
-                        M + 4,
-                        y,
-                        {
-                            maxWidth: IW - 8
-                        }
-                    );
-
-                    y += 10;
-                }
-
-                y += 4;
-
-                // Decision Theory
-                pdf.setFontSize(8);
-                pdf.setFont("helvetica", "bold");
-                tc(...C.s300);
-
-                pdf.text(
-                    theoryTitle,
-                    M + 4,
-                    y
-                );
-
-                y += 6;
-
-                pdf.setFontSize(7.5);
-                pdf.setFont("helvetica", "normal");
-                tc(...C.s400);
-
-                const theoryLines = pdf.splitTextToSize(
-                    theoryText,
-                    IW - 8
-                );
-
-                theoryLines.forEach(line => {
-
-                    checkY(7);
-
-                    pdf.text(
-                        line,
-                        M + 4,
-                        y
-                    );
-
-                    y += 4.5;
-                });
-
-                y += 3;
-
-                // Supporting evidence
-                pdf.setFontSize(8);
-                pdf.setFont("helvetica", "bold");
-                tc(...C.s300);
-
-                pdf.text(
-                    "SUPPORTING EVIDENCE",
-                    M + 4,
-                    y
-                );
-
-                y += 6;
-
-                pdf.setFontSize(7.5);
-                pdf.setFont("helvetica", "normal");
-                tc(...C.s400);
-
-                const supportingEvidence = [];
-
-                if (aiVerdict === "PHISHING") {
-                    supportingEvidence.push(
-                        `AI models produced ${phishingPct}% phishing probability.`
-                    );
-                } else if (aiVerdict === "LEGITIMATE") {
-                    supportingEvidence.push(
-                        `AI models produced ${legitimatePct}% legitimate probability.`
-                    );
-                }
-
-                if (senderTrusted) {
-                    supportingEvidence.push(
-                        "Sender domain was verified as a trusted domain."
-                    );
-
-                    supportingEvidence.push(
-                        "SPF, DKIM and DMARC authentication passed."
-                    );
-                } else {
-                    supportingEvidence.push(
-                        "Sender was not verified as a trusted brand sender."
-                    );
-                }
-
-                if (supportingEvidence.length === 0) {
-                    supportingEvidence.push(
-                        "Manual verification of the email evidence is recommended."
-                    );
-                }
-
-                supportingEvidence.forEach(item => {
-
-                    checkY(7);
-
-                    const lines = pdf.splitTextToSize(
-                        "• " + item,
-                        IW - 12
-                    );
-
-                    lines.forEach(line => {
-
-                        pdf.text(
-                            line,
-                            M + 6,
-                            y
-                        );
-
-                        y += 4.5;
-                    });
-
-                    y += 1;
-                });
-            });
-
-            // Flags
-            const flags = report.flags || [];
-            if (flags.length) {
-                section(`DETECTION FLAGS  (${flags.length})`, () => {
-                    flags.forEach(f => {
-                        checkY(7);
-                        const warn = f.includes("fail")||f.includes("FAIL")||f.includes("⚠");
-                        pdf.setFontSize(7.5); pdf.setFont("helvetica","normal");
-                        tc(...(warn ? C.red : C.s300));
-                        pdf.text(`• ${f}`, M+4, y, {maxWidth: IW-8}); y += 6;
-                    });
-                });
+                pdf.setTextColor(110, 110, 110);
+                pdf.text("EmailGuard AI - Email Threat Forensic Analysis Report", ML, 11);
+                if (id) pdf.text(`ID ${id}`, W - ML, 11, { align: "right" });
+                pdf.setDrawColor(200, 200, 200);
+                pdf.line(ML, 13, W - ML, 13);
+                pdf.line(ML, H - 13, W - ML, H - 13);
+                pdf.text("EmailGuard AI | founder@emailguardai.me", ML, H - 8);
+                pdf.text(`Page ${p} of ${pages}`, W - ML, H - 8, { align: "right" });
             }
 
-            // SHAP
-            const shap = report.explainability?.top_features || [];
-            if (shap.length) {
-                section("SHAP EXPLAINABILITY — WHY THIS VERDICT?", () => {
-                    pdf.setFontSize(7.5); pdf.setFont("helvetica","normal");
-                    tc(...C.s400);
-                    pdf.text(`Base score: ${report.explainability?.base_value?.toFixed(4)||"—"}   |   Red = phishing push   |   Green = legitimate push`, M+4, y);
-                    y += 7;
-
-                    const maxV = Math.max(...shap.map(s => Math.abs(s.shap_value)));
-                    shap.slice(0,8).forEach(f => {
-                        checkY(8);
-                        const bW    = 55;
-                        const fillW = maxV > 0 ? (Math.abs(f.shap_value)/maxV)*bW : 0;
-                        const bColor= f.direction === "phishing" ? C.red : C.green;
-
-                        pdf.setFontSize(7); pdf.setFont("helvetica","bold");
-                        tc(...C.s300); pdf.text(f.feature, M+4, y);
-
-                        fc(50,65,85); pdf.rect(M+52, y-3.5, bW, 4, "F");
-                        fc(...bColor); pdf.rect(M+52, y-3.5, fillW, 4, "F");
-
-                        pdf.setFont("helvetica","normal");
-                        tc(...bColor);
-                        pdf.text(`${f.shap_value>=0?"+":""}${f.shap_value.toFixed(4)}`, M+112, y);
-                        tc(...C.s500); pdf.text(f.direction, M+138, y);
-                        y += 7;
-                    });
-                });
-            }
-
-            // ════════════════════════════════════════════════════════════════
-            // PAGE 2
-            // ════════════════════════════════════════════════════════════════
-            newPage();
-
-            // Intent
-            const intent = report.nlp_extra?.intent;
-            if (intent) {
-                section("INTENT CLASSIFICATION", () => {
-                    kv("Top Intent",  intent.top_intent  || "—");
-                    kv("Confidence", `${((intent.confidence||0)*100).toFixed(1)}%`);
-                    y += 2;
-                    (intent.all_intents||[]).forEach(i => {
-                        checkY(7);
-                        const pct = (i.score*100).toFixed(1);
-                        const isTop = i.label === intent.top_intent;
-                        pdf.setFontSize(7); pdf.setFont("helvetica", isTop?"bold":"normal");
-                        tc(...(isTop ? C.white : C.s400));
-                        pdf.text(i.label, M+4, y);
-                        fc(...(isTop ? C.indigo : C.card));
-                        pdf.roundedRect(M+70, y-3.5, (IW-76)*(i.score), 4, 1,1,"F");
-                        tc(...C.s400); pdf.text(`${pct}%`, W-M-4, y, {align:"right"});
-                        y += 6;
-                    });
-                });
-            }
-
-            // GeoIP
-            const geo = report.geoip || {};
-            if (geo.originating_ip) {
-                section("GEOIP — EMAIL ORIGIN", () => {
-                    const loc = geo.location || {};
-                    const riskColor = geo.high_risk_country ? C.red : C.green;
-                    kv("Originating IP",  geo.originating_ip || "—");
-                    kv("Country",  `${loc.country||"—"}${geo.high_risk_country?" ⚠ HIGH RISK":""}`, riskColor);
-                    kv("Region / City",   `${loc.region||"—"} / ${loc.city||"—"}`);
-                    kv("ISP",             geo.isp || "—");
-                    kv("Organization",    geo.org || "—");
-                    kv("Coordinates",     loc.lat&&loc.lon ? `${loc.lat}, ${loc.lon}` : "—");
-                    if (loc.lat && loc.lon) {
-                        y += 2;
-                        const mUrl = `https://www.google.com/maps?q=${loc.lat},${loc.lon}`;
-                        pdf.setFontSize(7.5); tc(...C.indigo);
-                        pdf.textWithLink(`🗺 View on Google Maps → ${mUrl}`, M+4, y, {url: mUrl});
-                        y += 6;
-                    }
-                });
-            }
-
-            // Forensics
-            const fo = report.forensics || {};
-            section("FORENSICS ANALYSIS", () => {
-                const fsecs = [
-                    ["Auth Headers",      fo.auth_headers?.verdict,     fo.auth_headers?.findings],
-                    ["Address Mismatch",  fo.address_mismatch?.verdict, fo.address_mismatch?.findings],
-                    ["Typosquatting",     fo.typosquat?.verdict,        fo.typosquat?.findings],
-                    ["WHOIS / Domain Age",fo.whois?.verdict,            fo.whois?.domains],
-                    ["URL Reputation",    fo.url_reputation?.verdict,   fo.url_reputation?.findings],
-                ];
-                fsecs.forEach(([title, verd, findings]) => {
-                    checkY(10);
-                    const vc = verd==="high"||verd==="fail" ? C.red
-                            : verd==="medium"              ? C.yellow
-                            : verd==="trusted"||verd==="pass" ? C.green
-                            : C.s500;
-                    pdf.setFontSize(8); pdf.setFont("helvetica","bold");
-                    tc(...C.s300); pdf.text(title, M+4, y);
-                    tc(...vc); pdf.text((verd||"—").toUpperCase(), W-M-4, y, {align:"right"});
-                    y += 5;
-                    (findings||[]).slice(0,2).forEach(fi => {
-                        const detail = fi.meaning||fi.reasons?.join(", ")||fi.registrar||"";
-                        if (detail) {
-                            checkY(6);
-                            pdf.setFontSize(7); pdf.setFont("helvetica","normal");
-                            tc(...C.s500);
-                            pdf.text(`  → ${detail.slice(0,88)}`, M+4, y, {maxWidth: IW-8});
-                            y += 5;
-                        }
-                    });
-                    y += 2;
-                });
-            });
-
-            // SMTP
-            const smtp = report.smtp_chain || {};
-            section("SMTP CHAIN TRAVERSAL", () => {
-                const sc = smtp.chain_suspicious ? C.yellow : C.green;
-                kv("Hop Count",     smtp.hop_count ?? "—");
-                kv("Originating IP",smtp.originating_ip || "—");
-                kv("Chain Status",  smtp.chain_suspicious ? "⚠ SUSPICIOUS" : "✓ CLEAN", sc);
-                (smtp.anomalies||[]).forEach(a => {
-                    checkY(6); tc(...C.yellow);
-                    pdf.setFontSize(7); pdf.setFont("helvetica","normal");
-                    pdf.text(`⚠ ${a}`, M+4, y, {maxWidth: IW-8}); y += 5;
-                });
-                const fcrdns = smtp.fcrdns_results || [];
-                if (fcrdns.length) {
-                    y += 2;
-                    pdf.setFontSize(7.5); pdf.setFont("helvetica","bold");
-                    tc(...C.s400); pdf.text("FCrDNS Results:", M+4, y); y += 5;
-                    fcrdns.forEach(r => {
-                        checkY(5);
-                        const fc_ = r.fcrdns_pass===true  ? C.green
-                                : r.fcrdns_pass===false  ? C.red
-                                : C.s500;
-                        const st  = r.fcrdns_pass===true  ? "✓ PASS"
-                                : r.fcrdns_pass===false  ? "✗ FAIL" : "? Unknown";
-                        pdf.setFont("helvetica","normal"); pdf.setFontSize(7);
-                        tc(...C.s400); pdf.text(r.ip, M+8, y);
-                        tc(...fc_);   pdf.text(st, M+55, y);
-                        tc(...C.s500);pdf.text(r.rdns_hostname||"", M+80, y);
-                        y += 5;
-                    });
-                }
-            });
-
-            // ════════════════════════════════════════════════════════════════
-            // PAGE 3 — Blockchain + Seal
-            // ════════════════════════════════════════════════════════════════
-            newPage();
-
-            section("BLOCKCHAIN FORENSIC ANCHOR", () => {
-                const bRows = [
-                    ["Analysis ID",  bc.analysis_id  || "—",          null],
-                    ["SHA-256 Hash", bc.report_hash  || "—",          null],
-                    ["IPFS CID",     bc.ipfs_cid     || "Pending...", null],
-                    ["TX Hash",      bc.tx_hash      || "Pending...", null],
-                    ["Network",      "Ethereum Sepolia Testnet",      null],
-                    ["Status",       bc.tx_hash ? "✓ ANCHORED" : "⏳ ANCHORING",
-                                    bc.tx_hash ? C.green : C.yellow],
-                ];
-                bRows.forEach(([lbl, val, col]) => kv(lbl, val, col||undefined));
-
-                if (bc.polygonscan_url) {
-                    y += 2; tc(...C.indigo); pdf.setFontSize(7.5);
-                    pdf.textWithLink(`🔗 Verify on Etherscan → ${bc.polygonscan_url}`,
-                        M+4, y, {url: bc.polygonscan_url}); y += 6;
-                }
-                if (bc.ipfs_cid) {
-                    const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${bc.ipfs_cid}`;
-                    tc(...C.indigo); pdf.setFontSize(7.5);
-                    pdf.textWithLink(`📦 IPFS Report → ${ipfsUrl}`, M+4, y, {url: ipfsUrl});
-                    y += 6;
-                }
-                y += 3;
-                pdf.setFontSize(7); pdf.setFont("helvetica","bold");
-                tc(...C.s400); pdf.text("Legal Compliance:", M+4, y); y += 5;
-                (bc.law_reference||[]).forEach(law => {
-                    checkY(5); pdf.setFont("helvetica","normal");
-                    tc(...C.s500); pdf.text(`• ${law}`, M+4, y); y += 5;
-                });
-            });
-
-            // Verification guide
-            section("HOW TO VERIFY TAMPER-PROOF INTEGRITY", () => {
-                const steps = [
-                    "1. Open the IPFS CID link above and download the JSON report",
-                    "2. Compute SHA-256 hash of the downloaded file (use any SHA-256 tool)",
-                    "3. Compare it to the SHA-256 Hash shown in this report (same value is on-chain)",
-                    "4. If hashes match — report was never modified after analysis ✓",
-                    "5. The blockchain record is permanent and publicly verifiable by anyone",
-                ];
-                steps.forEach(s => {
-                    checkY(6); pdf.setFontSize(7.5); pdf.setFont("helvetica","normal");
-                    tc(...C.s300); pdf.text(s, M+4, y, {maxWidth: IW-8}); y += 6;
-                });
-            });
-
-            // ── SEAL ──────────────────────────────────────────────────────────
-            checkY(80); y += 8;
-            const cx = W/2;
-            const cy = y + 24;
-
-            dc(...C.indigo); pdf.setLineWidth(1.5);
-            pdf.circle(cx, cy, 24, "S");
-            dc(...C.indigo); pdf.setLineWidth(0.4);
-            pdf.circle(cx, cy, 20, "S");
-            pdf.circle(cx, cy, 14, "S");
-
-            tc(...C.indigo);
-            pdf.setFontSize(7);   pdf.setFont("helvetica","bold");
-            pdf.text("EMAILGUARD AI", cx, cy-6,  {align:"center"});
-            pdf.setFontSize(6);   pdf.setFont("helvetica","normal");
-            pdf.text("FORENSIC SEAL",  cx, cy-1,  {align:"center"});
-            pdf.text("SIH 2026",       cx, cy+4,  {align:"center"});
-            pdf.setFontSize(5);
-            pdf.text("BLOCKCHAIN VERIFIED", cx, cy+9, {align:"center"});
-
-            // Signature lines
-            dc(...C.s500); pdf.setLineWidth(0.3);
-            pdf.line(M+10, cy+40, M+70, cy+40);
-            pdf.line(W-M-70, cy+40, W-M-10, cy+40);
-            tc(...C.s400); pdf.setFontSize(7); pdf.setFont("helvetica","normal");
-            pdf.text("Authorized Signature", M+40, cy+45, {align:"center"});
-            pdf.text("System Generated",     W-M-40, cy+45, {align:"center"});
-            tc(...C.s500); pdf.setFontSize(6);
-            pdf.text("Auto-generated by EmailGuard AI. Verify authenticity via blockchain anchor above.", cx, cy+53, {align:"center"});
-            if (bc.report_hash) {
-                pdf.text(`Hash: ${bc.report_hash.slice(0,40)}...`, cx, cy+59, {align:"center"});
-            }
-
-            y = cy + 65;
-
-            // Footer on last page
-            addFooter();
-
-            // ── Save ──────────────────────────────────────────────────────────
-            const fname = `EmailGuard-${verdict}-${bc.analysis_id?.slice(0,8)||Date.now()}.pdf`;
-            pdf.save(fname);
+            pdf.save(this._reportBaseName() + ".pdf");
             Utils.toast("✅ PDF downloaded successfully!", "success");
-
         } catch (err) {
             console.error("PDF error:", err);
             Utils.toast("PDF generation failed: " + err.message, "error");
         }
     },
-    }
+};

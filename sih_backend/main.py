@@ -1,5 +1,5 @@
 """
-main.py — SIH 2026 Backend Entry Point
+main.py — EmailGuard AI Backend Entry Point
 
 Run:
     pip install -r requirements.txt
@@ -8,28 +8,36 @@ Run:
 Endpoints:
     GET  /health                    — liveness + layer status
     POST /analyze                   — upload .eml → full report + blockchain anchor
+                                      (response includes "report_text": the formal
+                                       plain-text forensic report, ready to download)
     GET  /analysis/{analysis_id}    — retrieve saved analysis by ID
+    GET  /report/{analysis_id}      — download the formal plain-text report (.txt)
     GET  /verify/{analysis_id}      — verify report hash on blockchain
 """
 
 import os
 os.environ.setdefault("HF_DEACTIVATE_ASYNC_LOAD", "1")   # Windows fix
 
+import json
+
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse
 
 from core.orchestrator       import analyze_email, load_all_models
+from core.report_text        import build_text_report, report_filename
 from infra.storage_service   import persist_analysis
 from infra.supabase_client   import get_analysis
 from infra.blockchain_anchor import verify_on_chain
 
 app = FastAPI(
-    title       = "SIH 2026 — AI-Powered Email Threat Detection",
+    title       = "EmailGuard AI — Email Threat Detection API",
     description = (
-        "Upload a raw .eml file to get a fused DeBERTa V12 + XGBoost V3 "
-        "phishing verdict with blockchain-anchored forensic report."
+        "Upload a raw .eml file. Local DeBERTa V12 + XGBoost models and forensic "
+        "layers gather evidence; an NVIDIA-hosted LLM analyst issues the final "
+        "verdict on every email. The result is a blockchain-anchored forensic report."
     ),
-    version = "2.0.0",
+    version = "2.1.0",
 )
 
 app.add_middleware(
@@ -56,7 +64,7 @@ def health():
     return {
         "status": "ok" if _models_loaded else "loading",
         "layers_active": [
-            "text_structural (DeBERTa V12 + XGBoost V3 + Fusion Gate)",
+            "text_structural (DeBERTa V12 + XGBoost V3 + Fusion Gate — advisory evidence)",
             "forensics (auth, mismatch, typosquat, url_unshorten, whois, vt)",
             "geoip (origin IP → country/city/ISP)",
             "explainability (SHAP heatmap)",
@@ -64,11 +72,12 @@ def health():
             "vision (OCR + QR + logo match)",
             "attachments (pdf_scan + office_macro_scan)",
             "smtp_traversal (multi-hop + FCrDNS)",
+            "llm_analyst (NVIDIA NIM — final verdict on every email, validated against forensic facts)",
         ],
         "storage": {
             "database":   "Supabase (PostgreSQL)",
             "ipfs":       "Pinata",
-            "blockchain": "Polygon Amoy Testnet / Hardhat local",
+            "blockchain": "Ethereum Sepolia testnet",
         }
     }
 
@@ -88,7 +97,7 @@ async def analyze(request: Request, file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
     try:
-        # ── Step 1: Run all 18 analysis components ──────────────────────────
+        # ── Step 1: Run all analysis layers + LLM analyst ───────────────────
         report = analyze_email(eml_bytes, source_name=file.filename)
 
         # ── Step 2: Save to Supabase + async IPFS/blockchain anchor ─────────
@@ -100,6 +109,16 @@ async def analyze(request: Request, file: UploadFile = File(...)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis failed: {e}")
+
+    # ── Step 3: Formal plain-text report. Added AFTER persistence so it is never
+    #    part of the stored / hashed record. A failure here must not fail the scan.
+    try:
+        report["report_text"]     = build_text_report(report)
+        report["report_filename"] = report_filename(report)
+    except Exception as e:
+        report["report_text"]     = None
+        report["report_filename"] = None
+        report["report_text_error"] = f"{type(e).__name__}: {str(e)[:120]}"
 
     return report
 
@@ -121,6 +140,54 @@ def get_saved_analysis(analysis_id: str):
         raise HTTPException(status_code=404, detail="Analysis not found.")
 
     return row
+
+
+# ── Download the formal text report ───────────────────────────────────────────
+
+_REPORT_KEYS = ("report", "report_json", "full_report", "analysis", "result", "data")
+_META_KEYS   = ("analysis_id", "id", "report_hash", "ipfs_cid", "tx_hash", "chain_id", "created_at")
+
+
+def _report_from_row(row: dict) -> dict:
+    """Saved rows may keep the report in a JSON column; find it and add the anchor fields."""
+    inner = None
+    for key in _REPORT_KEYS:
+        val = row.get(key)
+        if isinstance(val, str):
+            try:
+                val = json.loads(val)
+            except Exception:
+                val = None
+        if isinstance(val, dict) and val:
+            inner = val
+            break
+    meta = {k: row[k] for k in _META_KEYS if k in row and row[k] not in (None, "")}
+    if "analysis_id" not in meta and "id" in meta:
+        meta["analysis_id"] = meta["id"]
+    base = dict(inner) if inner else dict(row)
+    for k, v in meta.items():
+        base.setdefault(k, v)
+    return base
+
+
+@app.get("/report/{analysis_id}", response_class=PlainTextResponse)
+def download_report(analysis_id: str):
+    """Formal plain-text forensic report for a saved analysis (downloads as .txt)."""
+    try:
+        row = get_analysis(analysis_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Analysis not found.")
+
+    rep = _report_from_row(row)
+    rep.setdefault("analysis_id", analysis_id)
+    text = build_text_report(rep)
+    return PlainTextResponse(
+        text,
+        headers={"Content-Disposition": f'attachment; filename="{report_filename(rep)}"'},
+    )
 
 
 # ── Blockchain verification ───────────────────────────────────────────────────
@@ -149,7 +216,7 @@ def verify_analysis(analysis_id: str):
             "Download the IPFS file at the returned ipfs_cid. "
             "Compute its SHA-256. It must match report_hash exactly. "
             "If it does, the report has not been modified since analysis. "
-            "Legal basis: BSA 2023 Section 63, Indian Evidence Act Section 65B."
+            "Legal basis: Bharatiya Sakshya Adhiniyam 2023, Section 63."
         )
     }
 

@@ -43,7 +43,8 @@ image = (
         ROOT / "requirements.txt"
     )
     .pip_install(
-        "huggingface_hub"
+        "huggingface_hub",
+        "openai>=1.40.0",   # NVIDIA NIM LLM analyst (OpenAI-compatible client)
     )
     .workdir("/app")
     .add_local_dir(
