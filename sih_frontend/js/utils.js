@@ -9,7 +9,7 @@ const Utils = {
         const v = verdict.toUpperCase();
         if (v === "PHISHING")   return "text-red-500";
         if (v === "LEGITIMATE") return "text-green-500";
-        if (v === "HITL_QUEUE") return "text-yellow-400";
+        if ((v === "HITL_QUEUE" || v === "HUMAN_REVIEW")) return "text-yellow-400";
         return "text-gray-400";
     },
 
@@ -19,7 +19,7 @@ const Utils = {
         const v = verdict.toUpperCase();
         if (v === "PHISHING")   return "bg-red-500/20 border border-red-500";
         if (v === "LEGITIMATE") return "bg-green-500/20 border border-green-500";
-        if (v === "HITL_QUEUE") return "bg-yellow-400/20 border border-yellow-400";
+        if ((v === "HITL_QUEUE" || v === "HUMAN_REVIEW")) return "bg-yellow-400/20 border border-yellow-400";
         return "bg-gray-700";
     },
 
@@ -29,7 +29,7 @@ const Utils = {
         const v = verdict.toUpperCase();
         if (v === "PHISHING")   return "🚨";
         if (v === "LEGITIMATE") return "✅";
-        if (v === "HITL_QUEUE") return "⚠️";
+        if ((v === "HITL_QUEUE" || v === "HUMAN_REVIEW")) return "⚠️";
         return "❓";
     },
 

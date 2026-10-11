@@ -4,13 +4,17 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EmailGuard AI — Organisation Dashboard</title>
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png"/>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{background:#0d1117;font-family:'Segoe UI',sans-serif;min-height:100vh;color:#cdd9e5}
 
     nav{background:#161b22;border-bottom:1px solid #21262d;padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
     .nav-left{display:flex;align-items:center;gap:16px}
-    .nav-logo{font-size:18px;font-weight:700;color:#fff}
+    .nav-logo{font-size:18px;font-weight:700;color:#fff;display:flex;align-items:center;gap:10px}
+    .nav-logo img{width:34px;height:34px;border-radius:8px;background:#fff;padding:3px;object-fit:contain}
     .nav-logo span{color:#6366f1}
     .nav-badge{background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);color:#6366f1;font-size:10px;padding:3px 10px;border-radius:20px;letter-spacing:1px;text-transform:uppercase}
     .org-tag{font-size:12px;color:#8b949e}
@@ -173,7 +177,7 @@
 <!-- NAV -->
 <nav>
   <div class="nav-left">
-    <div class="nav-logo">🛡️ Email<span>Guard</span> AI</div>
+    <div class="nav-logo"><img src="assets/emailguard-icon-512.png" alt="EmailGuard AI logo"/><div>Email<span>Guard</span> AI</div></div>
     <span class="nav-badge">🏢 Organisation</span>
     <div class="org-tag">Team: <span id="orgName">—</span></div>
   </div>
@@ -491,11 +495,21 @@
         const formData = new FormData()
         formData.append('file', queue[i].file)
 
-        const res  = await fetch(`${BACKEND_URL}/analyze`, { method: 'POST', body: formData })
+        const res  = await fetch(`${BACKEND_URL}/analyze`, {
+          method:  'POST',
+          headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+          body:    formData
+        })
         const data = await res.json()
+        if (!res.ok) throw new Error(data.detail || `Server error ${res.status}`)
+        delete data.report_text            // the formal text report is rebuilt on demand; do not store it twice
 
-        const verdict = (data.verdict || 'UNCERTAIN').toUpperCase()
-        const score   = data.fusion_score ?? data.score ?? 0
+        // final verdict comes from the AI analyst; "needs review" is shown as UNCERTAIN on this page
+        const rawVerdict = String(data.final_verdict || data.verdict || 'UNCERTAIN').toUpperCase()
+        const verdict    = (rawVerdict === 'HUMAN_REVIEW' || rawVerdict === 'HITL_QUEUE') ? 'UNCERTAIN' : rawVerdict
+        const score      = data.text_structural?.fusion?.fused_probability ?? data.fusion_score ?? data.score ?? 0
+        const originIp   = data.geoip?.originating_ip || data.smtp_chain?.originating_ip || data.origin_ip || null
+        const originCtry = data.geoip?.location?.country || data.origin_country || null
 
         queue[i].status = verdict === 'PHISHING'   ? 'phishing'
                         : verdict === 'LEGITIMATE' ? 'legitimate'
@@ -503,16 +517,16 @@
 
         queue[i].result = {
           verdict, score,
-          origin_ip     : data.origin_ip      || '—',
-          origin_country: data.origin_country || '—',
+          origin_ip     : originIp   || '—',
+          origin_country: originCtry || '—',
           full_report   : data
         }
 
         batchResults.push({
           file_name     : queue[i].file.name,
           verdict, score,
-          origin_ip     : data.origin_ip      || null,
-          origin_country: data.origin_country || null,
+          origin_ip     : originIp   || null,
+          origin_country: originCtry || null,
           full_report   : data,
           batch_id      : batchId,
           org_name      : orgName,
@@ -524,8 +538,8 @@
         await supabase.from('org_analyses').insert({
           file_name     : queue[i].file.name,
           verdict, score,
-          origin_ip     : data.origin_ip      || null,
-          origin_country: data.origin_country || null,
+          origin_ip     : originIp   || null,
+          origin_country: originCtry || null,
           full_report   : data,
           batch_id      : batchId,
           org_name      : orgName,

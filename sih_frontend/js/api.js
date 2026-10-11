@@ -12,8 +12,14 @@ const API = {
 
         if (onProgress) onProgress("Uploading email...", 10);
 
+        // Logged-in users send their access token so the analysis is saved under their account.
+        // Anonymous use still works; the analysis is just not tied to anyone.
+        const token   = (typeof Auth !== "undefined" && Auth.getToken) ? Auth.getToken() : null;
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
         const res = await fetch(`${this.base()}/analyze`, {
             method: "POST",
+            headers,
             body:   formData,
         });
 

@@ -2,6 +2,9 @@
 // ── Dashboard — analyses table, stats, chart, live GeoIP map ─────────────
 
 const { createClient } = supabase;
+
+// "Needs review": older rows say HITL_QUEUE, the analyst pipeline writes HUMAN_REVIEW.
+const isReview = v => v === "HUMAN_REVIEW" || v === "HITL_QUEUE";
 const _db = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
 const DashboardController = {
@@ -97,7 +100,7 @@ const DashboardController = {
             // Color by verdict
             const color = verdict === "PHISHING"   ? "#ef4444"
                         : verdict === "LEGITIMATE"  ? "#22c55e"
-                        : verdict === "HITL_QUEUE"  ? "#f59e0b"
+                        : isReview(verdict) ? "#f59e0b"
                         : "#94a3b8";
 
             // Pulse effect for phishing
@@ -286,7 +289,7 @@ const DashboardController = {
         const total    = rows.length;
         const phishing = rows.filter(r => r.final_verdict === "PHISHING").length;
         const legit    = rows.filter(r => r.final_verdict === "LEGITIMATE").length;
-        const hitl     = rows.filter(r => r.final_verdict === "HITL_QUEUE").length;
+        const hitl     = rows.filter(r => isReview(r.final_verdict)).length;
         const anchored = rows.filter(r => r.blockchain_anchored).length;
         const pending  = total - anchored;
 
@@ -303,7 +306,7 @@ const DashboardController = {
         const rows     = this.allRows;
         const phishing = rows.filter(r => r.final_verdict === "PHISHING").length;
         const legit    = rows.filter(r => r.final_verdict === "LEGITIMATE").length;
-        const hitl     = rows.filter(r => r.final_verdict === "HITL_QUEUE").length;
+        const hitl     = rows.filter(r => isReview(r.final_verdict)).length;
 
         const canvas = document.getElementById("verdict-chart");
         if (!canvas) return;
@@ -348,7 +351,7 @@ const DashboardController = {
         const val     = document.getElementById("verdict-filter").value;
         this.filtered = val === "all"
             ? [...this.allRows]
-            : this.allRows.filter(r => r.final_verdict === val);
+            : this.allRows.filter(r => val === "HITL_QUEUE" ? isReview(r.final_verdict) : r.final_verdict === val);
         this.page = 1;
         this.renderTable();
 

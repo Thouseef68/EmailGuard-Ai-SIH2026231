@@ -27,7 +27,7 @@ from fastapi.responses import PlainTextResponse
 from core.orchestrator       import analyze_email, load_all_models
 from core.report_text        import build_text_report, report_filename
 from infra.storage_service   import persist_analysis
-from infra.supabase_client   import get_analysis
+from infra.supabase_client   import get_analysis, get_client
 from infra.blockchain_anchor import verify_on_chain
 
 app = FastAPI(
@@ -48,6 +48,37 @@ app.add_middleware(
 )
 
 _models_loaded = False
+
+
+# ── Who is running this analysis? ─────────────────────────────────────────────
+# The frontend sends the user's Supabase access token. We verify it with Supabase
+# (never trust a user id sent by the browser) and store the owner on the saved row,
+# so the user / cyber dashboards can show "my analyses". No token = anonymous scan.
+
+def _user_id_from_request(request: Request):
+    header = request.headers.get("authorization", "")
+    if not header.lower().startswith("bearer "):
+        return None
+    token = header[7:].strip()
+    if not token:
+        return None
+    try:
+        res  = get_client().auth.get_user(token)
+        user = getattr(res, "user", None)
+        return str(user.id) if user else None
+    except Exception as exc:
+        print(f"[auth] token check failed: {type(exc).__name__}")
+        return None
+
+
+def _attach_owner(report: dict, user_id: str):
+    analysis_id = (report.get("blockchain") or {}).get("analysis_id") or report.get("analysis_id")
+    if not analysis_id:
+        return
+    try:
+        get_client().table("analyses").update({"user_id": user_id}).eq("id", analysis_id).execute()
+    except Exception as exc:
+        print(f"[auth] could not attach owner to analysis {analysis_id}: {type(exc).__name__}")
 
 
 @app.on_event("startup")
@@ -109,6 +140,11 @@ async def analyze(request: Request, file: UploadFile = File(...)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis failed: {e}")
+
+    # ── Step 2b: tie the saved analysis to the logged-in user (never fails the scan) ──
+    owner = _user_id_from_request(request)
+    if owner:
+        _attach_owner(report, owner)
 
     # ── Step 3: Formal plain-text report. Added AFTER persistence so it is never
     #    part of the stored / hashed record. A failure here must not fail the scan.
