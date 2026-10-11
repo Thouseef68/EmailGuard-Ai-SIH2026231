@@ -1,11 +1,12 @@
 // js/dashboard.js
 // ── Dashboard — analyses table, stats, chart, live GeoIP map ─────────────
 
-const { createClient } = supabase;
 
 // "Needs review": older rows say HITL_QUEUE, the analyst pipeline writes HUMAN_REVIEW.
 const isReview = v => v === "HUMAN_REVIEW" || v === "HITL_QUEUE";
-const _db = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+// Reuse the Supabase client that auth.js already created (declaring createClient again is a
+// "has already been declared" error, because all these scripts share one global scope).
+const _db = _supabase;
 
 const DashboardController = {
 
